@@ -6,7 +6,7 @@
 >
 > **Backup de configuração** — nunca contém memórias, sessões, `.env`, `auth.json` nem chaves de API (o installer do Hermes exclui isso por design).
 
-## 🧑‍💻 O time
+## 👥 O time
 
 | Agente | Papel | Skills ativas |
 |---|---|---|
@@ -18,7 +18,7 @@
 
 *Última atualização: 05/08/2026 — 5 agentes, 55 skills ativas no total.*
 
-## 🚀 Restaurar em outra máquina
+## 💾 Restaurar em outra máquina
 
 ```bash
 git clone https://github.com/MatheusCarvalho12/my-hermes-agents.git
