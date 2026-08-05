@@ -1,0 +1,48 @@
+{
+  "jobs": [
+    {
+      "id": "a9c9f68e1185",
+      "name": "sync-hermes-agents",
+      "prompt": "Roda o sync autom\u00e1tico do repo hermes-agents (monta distributions, sanitiza, bump vers\u00e3o, README, push). Silencioso se nada mudou.",
+      "skills": [],
+      "skill": null,
+      "model": null,
+      "provider": null,
+      "provider_snapshot": null,
+      "model_snapshot": null,
+      "base_url": null,
+      "script": "sync-hermes-agents.sh",
+      "no_agent": true,
+      "context_from": null,
+      "schedule": {
+        "kind": "interval",
+        "minutes": 120,
+        "display": "every 120m"
+      },
+      "schedule_display": "every 120m",
+      "repeat": {
+        "times": null,
+        "completed": 0
+      },
+      "enabled": true,
+      "state": "scheduled",
+      "paused_at": null,
+      "paused_reason": null,
+      "created_at": "2026-08-05T02:49:57.037770-03:00",
+      "next_run_at": "2026-08-05T04:50:00.843270-03:00",
+      "last_run_at": null,
+      "last_status": null,
+      "last_error": null,
+      "last_delivery_error": null,
+      "deliver": "local",
+      "origin": null,
+      "enabled_toolsets": null,
+      "workdir": null,
+      "fire_claim": {
+        "at": "2026-08-05T02:50:00.843270-03:00",
+        "by": "amaterei:79072"
+      }
+    }
+  ],
+  "updated_at": "2026-08-05T02:50:00.847227-03:00"
+}
