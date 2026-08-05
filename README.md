@@ -1,8 +1,8 @@
-# 🤖 Hermes Agents — Time Multi-Perfil
+# 🚀 My Hermes Agents — Minha Harness Multi-Agente
 
-![License](https://img.shields.io/badge/license-MIT-blue) ![Release](https://img.shields.io/github/v/release/MatheusCarvalho12/hermes-agents) ![Agentes](https://img.shields.io/badge/agentes-5-orange) ![Skills](https://img.shields.io/badge/skills-55-green)
+![License](https://img.shields.io/badge/license-MIT-blue) ![Release](https://img.shields.io/github/v/release/MatheusCarvalho12/my-hermes-agents) ![Agentes](https://img.shields.io/badge/agentes-5-orange) ![Skills](https://img.shields.io/badge/skills-55-green)
 
-> Distribuições oficiais dos meus agentes [Hermes](https://hermes-agent.nousresearch.com) (Nous Research) — restauração em qualquer máquina com um comando.
+> **Minha harness pessoal** construída com [Hermes Agent](https://hermes-agent.nousresearch.com) (Nous Research) — o time de agentes que eu sempre quis: cada perfil com papel, skills e memória próprios, orquestrados por mim. Restaurável em qualquer máquina com um comando.
 >
 > **Backup de configuração** — nunca contém memórias, sessões, `.env`, `auth.json` nem chaves de API (o installer do Hermes exclui isso por design).
 
@@ -21,8 +21,8 @@
 ## 🚀 Restaurar em outra máquina
 
 ```bash
-git clone https://github.com/MatheusCarvalho12/hermes-agents.git
-cd hermes-agents
+git clone https://github.com/MatheusCarvalho12/my-hermes-agents.git
+cd my-hermes-agents
 hermes profile install ./orchestrator --alias
 hermes profile install ./frontend-developer --alias
 hermes profile install ./backend-developer --alias
