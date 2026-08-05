@@ -1,0 +1,8 @@
+name: orchestrator
+version: 1.0.0
+description: 'Orquestrador principal (default): gerencia o time multi-perfil via kanban,
+  decide quem faz o quê, delega tarefas e administra o Hermes.'
+author: Matheus Carvalho
+license: MIT
+hermes_requires: '>=0.12.0'
+env_requires: []

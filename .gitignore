@@ -1,0 +1,55 @@
+# ── Credenciais & segredos — NUNCA commitar ──────────────
+.env
+.env.*
+auth.json
+auth.lock
+*.pem
+*.key
+
+# ── Dados de usuário — NUNCA commitar ────────────────────
+memories/
+sessions/
+logs/
+plans/
+workspace/
+home/
+kanban/
+kanban.db*
+
+# ── Runtime & state ───────────────────────────────────────
+state.db*
+hermes_state.db
+response_store.db*
+gateway.pid
+gateway_state.json
+processes.json
+active_profile
+.update_check
+*.bak
+*.bak-*
+
+# ── Caches & artefatos gerados ────────────────────────────
+cache/
+image_cache/
+audio_cache/
+document_cache/
+browser_screenshots/
+__pycache__/
+*.pyc
+node_modules/
+.bundled_manifest
+.curator_state
+.usage.json
+.usage.json.lock
+.hub/
+
+# ── Infra ─────────────────────────────────────────────────
+hermes-agent/
+.worktrees/
+bin/
+node/
+checkpoints/
+sandboxes/
+backups/
+.hermes_history
+.DS_Store

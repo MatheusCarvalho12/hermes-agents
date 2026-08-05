@@ -1,0 +1,12 @@
+name: frontend-developer
+version: 1.0.0
+description: 'Frontend developer: React, shadcn/ui, performance/Lighthouse, a11y,
+  testes front e implementação de UI pt-BR.'
+author: Matheus Carvalho
+license: MIT
+hermes_requires: '>=0.12.0'
+env_requires:
+- name: CONTEXT7_API_KEY
+  description: Context7 API key (opcional — free tier funciona sem)
+  required: false
+  default: ''

@@ -1,0 +1,8 @@
+name: designer
+version: 1.0.0
+description: 'Designer: design system, branding, tokens, Figma e direção visual de
+  telas novas.'
+author: Matheus Carvalho
+license: MIT
+hermes_requires: '>=0.12.0'
+env_requires: []

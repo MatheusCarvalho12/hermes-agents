@@ -1,0 +1,16 @@
+name: backend-developer
+version: 1.0.0
+description: 'Backend developer: FastAPI, SQLAlchemy/Alembic, pytest, APIs REST, integrações
+  e segurança.'
+author: Matheus Carvalho
+license: MIT
+hermes_requires: '>=0.12.0'
+env_requires:
+- name: CONTEXT7_API_KEY
+  description: Context7 API key (opcional)
+  required: false
+  default: ''
+- name: MORPH_API_KEY
+  description: Morph API key para busca de código (warpgrep)
+  required: false
+  default: ''
