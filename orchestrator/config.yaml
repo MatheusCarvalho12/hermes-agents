@@ -204,12 +204,6 @@ image_gen:
 plugins:
   enabled:
     - rtk-rewrite
-mcp_servers:
-  aside:
-    command: /Users/amaterei/.local/bin/aside
-    args:
-      - mcp
-    enabled: true
 
 # ── Fallback Model ────────────────────────────────────────────────────
 # Automatic provider failover when primary is unavailable.
