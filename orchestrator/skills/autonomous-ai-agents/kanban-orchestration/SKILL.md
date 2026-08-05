@@ -36,12 +36,29 @@ Fluxo operacional do ORQUESTRADOR sobre o kanban do Hermes, validado em entrega 
 - Workspace `dir:` compartilha o MESMO diretório físico: tasks que editam o MESMO arquivo DEVEM ser serializadas (filha com `--parent` dos dois) — senao conflito garantido.
 - Dispatcher tick ~60s: task ready → running em ~1 min.
 
+## Escopo vazado = o time-killer #1 de worker (2026-08-05, task StatusBadge)
+Worker de frontend gastou 22 min numa task de 1 componente e reescreveu 20 arquivos fora do escopo (1180 linhas não commitadas: App/Header/StateViews/index.css...). Commit dele era limpo, mas o working tree virou um refactor inteiro que ninguém pediu.
+- **Prevenção no body da task**: seção explícita "Escopo autorizado: <paths>" + "PROIBIDO tocar: <paths>" + "Se precisar de algo fora, pare e pergunte via kanban". Tasks GRANDES autorizam a área inteira (ex: "frontend/ inteiro") mas proíbem as outras (backend/, tests/).
+- **Detecção pós-run**: `git status --short` + `git diff --stat HEAD` — se aparecer diff fora do que a task autorizou, é escopo vazado (devolver / reverter / reaproveitar com critério).
+- **Time-box**: worker deve ler ≤ 30 min antes de codar em task grande; ≤ 10 min em task pequena.
+- **Reaproveitar trabalho parcial de run crashado**: run anterior crashou por protocol_violation mas deixou refactor útil no working tree → orquestrador `git stash push -u -m "wip: ..."` ANTES de delegar de novo (preserva, reversível), commitar specs/contratos do designer separadamente (`git add docs/... && git commit`), e o worker novo valida o stash como baseline (build/lint) antes de decidir aproveitar ou refazer.
+
 ## protocol_violation (padrão recorrente em sessões longas)
 Worker termina rc=0 SEM chamar kanban_complete/kanban_block → dispatcher marca gave_up/blocked apos 2-3 crashes; o erro instrui: "verify it and report the result via kanban_complete".
 Recovery (do orquestrador):
 1. Verificar a ENTREGA REAL (log do worker mostra sucesso? build/testes rodam? arquivos existem?).
 2. `hermes kanban comment` explicando a revisão + `hermes kanban complete <id>`.
 3. Prevenção: encerrar o body com "CHAME kanban_complete OBRIGATORIAMENTE ao terminar (senao o dispatcher conta como crash)".
+
+### Variante: trabalho grande NÃO commitado (2ª ocorrência consecutiva — 2026-08-05, task dashboard GRANDE)
+Worker entrega a refatoração INTEIRA mas: (a) só commitou o pedaço pequeno (ex: componente) e deixou 19-29 arquivos (+1000 linhas) como diff não commitado no working tree; (b) não chamou `kanban_complete` → blocked após 4 runs. O summary pode nem existir — NÃO confiar nele; a prova é o diff + build/testes.
+Recovery completo (validado na task t_b6e8e378):
+1. `hermes kanban show <id>` → confirmar protocol_violation + runs crashados (não é falha de trabalho — o diff existe).
+2. Rodar build + testes + tsc NO working tree (`npm run build`, `npm test -- --run`, `npx tsc --noEmit`) — prova que o trabalho órfão é real e saudável.
+3. Se a task tem CONTRATO (spec do designer, AGENTS.md): validar o diff contra os CRITÉRIOS DE ACEITE antes de commitar — ex. spec de design: `grep -rn "#[0-9a-fA-F]\{6\}" frontend/src/components/ --include="*.tsx"` (hardcode hex proibido), `startViewTransition` no toggle, fontes Inter/JetBrains + `.num`, dark sem box-shadow. Não commitar trabalho que não bate com o contrato.
+4. Commitar o trabalho órfão EM NOME DO WORKER (orquestrador fecha o ciclo quando o worker crashou no protocolo): `git add` + `git commit` com mensagem que reflete a feature. Lixo (ex: `frontend/test-results/.last-run.json`, `assets/mockup-*`) → `.gitignore` em vez de commitar (`git rm -r --cached` + append no .gitignore + commit separado).
+5. `hermes kanban comment` com a revisão (o que foi validado, commits/hashes) + `hermes kanban complete <id>`.
+6. **Lição recorrente**: worker que entrega bem mas não fecha o protocolo pela 2ª vez é padrão, não acidente — considerar reforço no SOUL/body (instrução de fechamento mais agressiva) e reportar ao usuário como problema de processo, não de qualidade de entrega.
 
 ## Auto-block review-required
 Workers com "NÃO commitar" no body se auto-bloqueiam com `kind: needs_input` (review-required) quando terminam. Orquestrador: revisa artefatos (diff/arquivos), comenta aprovacao, `kanban complete` → libera tasks filhas.

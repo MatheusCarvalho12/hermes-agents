@@ -80,6 +80,7 @@ Installs plugin `rtk-rewrite` (hook `pre_tool_call`) that rewrites `git status` 
 ### 5. SOUL.md authoring pattern (per profile)
 Structure: `# Identity` → `# Style` → `# <domain section>` → `# Skills — use a skill certa na hora certa` → `# Verificação` → `# Context7 — LEI` → `# Morph/warpgrep — uso seletivo` → `# Avoid` → `# Defaults`. Keep the SOUL LEAN (~30 linhas de voz + regras de papel); tabela de gatilhos gigante NÃO vai no SOUL — vira a description da skill (abaixo).
 - **Gatilho nativo > tabela manual (validado 2026-08 na reestruturação, doc oficial)**: o Hermes injeta name+description de TODAS as skills em toda sessão (nível 0 do progressive disclosure, ~3k tokens) e instrui carregar as relevantes. A `description` do frontmatter É o gatilho. Tabela manual no SOUL duplica e envelhece (ex.: gatilho morto `reactbits` apontando pra skill inexistente). Escrever descriptions acionáveis ("Use quando criar tela nova…") e manter no SOUL só regras de papel que não cabem em skill.
+- **Scope Discipline = seção OBRIGATÓRIA no SOUL v2 (validado 2026-08-05)**: na task de prova o worker gastou 22 min e reescreveu 20 arquivos fora do escopo (1180 linhas não commitadas em App/Header/StateViews/index.css — o commit dele era limpo, mas o working tree virou um refactor inteiro). O corpo da task define o escopo; worker lista arquivos antes de codar; se precisar tocar algo fora, para e pergunta via kanban comment; time-box de exploração (task pequena ≤ 10 min, grande ≤ 30 min). Texto exato no template (`templates/soul-v2-worker.md`).
 - **"OBRIGATÓRIAS SEMPRE" foi corrigido pelo usuário (2026-08-05)**: humanizer NÃO é "carregar sempre" — é gatilho condicional (SÓ quando escrever copy de site ou mensagem pra alguém); i-have-adhd é estilo de resposta pro usuário, não skill a carregar; context7 é o único hábito de toda task (e é MCP — vira regra na seção de ferramentas, não "skill a carregar").
 - **Modelo em camadas de invocação (decisão da reestruturação)**: SOUL (sempre, voz+regras de papel) → task kanban (obrigação pontual: "USE skills X, Y" no body + prova no summary) → AGENTS.md (convenções do repo; ausência NÃO quebra nada — task e SOUL cobrem) → description da skill (gatilho por relevância). Auto-reporte no summary continua, mas valida o que a task pediu, não lista genérica.
 - Encode role rules: DRY/SOLID + componentização total (frontend), Black/Ruff format immediately after writing code (backend — kills lint rework loops), performant+clear SQL (DBA), design-system ownership (designer: tokens/typography/padding/components; frontend executes).
@@ -88,6 +89,7 @@ Structure: `# Identity` → `# Style` → `# <domain section>` → `# Skills —
 - **Verification once before PR**: lint/tests/react-doctor/security/code-review run as a single pre-PR pass, not during development. Where the verification sequence lives: repo conventions → AGENTS.md; the PROCEDURE (exact sequence) → a per-role skill; SOUL keeps one line "rode a skill de verificação antes do done".
 - Test philosophy: few, scenario-based tests (acceptance criteria; idempotency matters — e.g. like button clicks, "new section" button must not create 30 empty rows). Never test for testing's sake.
 - Session detail (the full architecture-rework decision tree, Q1–Q12): `references/invocation-architecture.md`.
+- Rodada 2 de validação (task GRANDE, 14 skills, protocol violation recorrente, recovery com commit órfão): `references/soul-v2-validation-round2.md`.
 
 ### 6. Kanban activation (orchestrator delegates)
 ```bash
@@ -109,9 +111,9 @@ Agents drive the board via `kanban_*` tools (kanban_create/list/show/comment); t
 ## Validation loop (SOUL v2 — draft → test → measure → iterate)
 Depois de reescrever o SOUL de UM perfil (ex: frontend), NÃO replique nos outros na mesma hora. Valide com task kanban de PROVA (2026-08-05, método Anthropic skill-creator aplicado a SOULs):
 1. Escrever o SOUL v2 de um perfil, mostrar o draft ao usuário, aplicar com backup (`.bak-$(date +%Y%m%d-%H%M%S)`).
-2. Limpar + kit: `echo y | hermes -p <p> skills opt-out --remove` → reinstalar kit curado → verificar `COLUMNS=400 hermes -p <p> skills list` (só as skills do kit ativas).
-3. Criar task de PROVA pequena e real que dispare os gatilhos (ex: componente com variantes + a11y + testes), body com "No summary, liste as skills que você CARREGOU" + "CHAME kanban_complete OBRIGATORIAMENTE".
-4. Medir: skills carregadas no summary (sem lista → devolve), entrega real (build/testes/branch), aderência ao gatilho.
+2. Limpar + kit: `echo y | hermes -p <p> skills opt-out --remove` → reinstalar kit curado → verificar `COLUMNS=400 hermes -p <p> skills list` (só as skills do kit ativas). Repor `humanizer` (bundled, sai no opt-out): `cp -r ~/.hermes/skills/creative/humanizer <p>/skills/creative/`.
+3. Criar task de PROVA **do tamanho real das demandas do usuário** (correção 2026-08-05: ele rejeitou micro-task tipo "crie um StatusBadge" — "minhas tasks não vão ser uma coisa pequena assim"). Task pequena valida gatilhos e processo; task GRANDE (ex: refatorar o dashboard inteiro mantendo a lógica de negócio, com spec do designer como contrato) valida escopo, autonomia e entrega de verdade. Body com "No summary, liste as skills que você CARREGOU" + "CHAME kanban_complete OBRIGATORIAMENTE" + seção "Escopo autorizado / PROIBIDO tocar" (mata o escopo vazado).
+4. Medir: skills carregadas no summary (sem lista → devolve), entrega real (build/testes/branch), aderência ao gatilho, tempo gasto (escopo vazado = tempo estourado com diff fora da task — conferir `git status --short` e `git diff --stat` contra o que a task pediu).
 5. Só então replicar SOUL + kit nos outros perfis. Se não seguiu → iterar o SOUL até seguir (usuário prefere iterar a "acertar de primeira").
 
 ## Verification
