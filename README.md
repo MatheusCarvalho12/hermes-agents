@@ -6,19 +6,19 @@
 >
 > **Backup de configuração** — nunca contém memórias, sessões, `.env`, `auth.json` nem chaves de API (o installer do Hermes exclui isso por design).
 
-## ![O time](https://img.shields.io/badge/O_time-181717?logo=github&logoColor=white)
+## 🧑‍💻 O time
 
 | Agente | Papel | Skills ativas |
 |---|---|---|
 | ![orchestrator](https://img.shields.io/badge/-orchestrator-326CE5?logo=kubernetes&logoColor=white) | Orquestrador — gerencia o time via Kanban, decide quem faz o quê, delega e administra o Hermes. | 9 |
-| ![frontend-developer](https://img.shields.io/badge/-frontend-developer-61DAFB?logo=react&logoColor=white) | Frontend — React, shadcn/ui, performance/Lighthouse, a11y e UI pt-BR humanizada. | 22 |
-| ![backend-developer](https://img.shields.io/badge/-backend-developer-009688?logo=fastapi&logoColor=white) | Backend — FastAPI, SQLAlchemy/Alembic, pytest, APIs REST e segurança. | 14 |
-| ![database-developer](https://img.shields.io/badge/-database-developer-4169E1?logo=postgresql&logoColor=white) | Database — Postgres, SQL, modelagem, migrações e otimização. | 4 |
+| ![frontend-developer](https://img.shields.io/badge/-frontend--developer-61DAFB?logo=react&logoColor=white) | Frontend — React, shadcn/ui, performance/Lighthouse, a11y e UI pt-BR humanizada. | 22 |
+| ![backend-developer](https://img.shields.io/badge/-backend--developer-009688?logo=fastapi&logoColor=white) | Backend — FastAPI, SQLAlchemy/Alembic, pytest, APIs REST e segurança. | 14 |
+| ![database-developer](https://img.shields.io/badge/-database--developer-4169E1?logo=postgresql&logoColor=white) | Database — Postgres, SQL, modelagem, migrações e otimização. | 4 |
 | ![designer](https://img.shields.io/badge/-designer-F24E1E?logo=figma&logoColor=white) | Designer — design system, branding, tokens, Figma e direção visual. | 6 |
 
 *Última atualização: 05/08/2026 — 5 agentes, 55 skills ativas no total.*
 
-## ![Restaurar](https://img.shields.io/badge/Restaurar-181717?logo=rocket&logoColor=white)
+## 🚀 Restaurar em outra máquina
 
 ```bash
 git clone https://github.com/MatheusCarvalho12/my-hermes-agents.git
@@ -32,34 +32,34 @@ hermes profile install ./designer --alias
 
 Suas memórias/sessões nascem vazias por design; chaves de API você preenche no `.env` de cada perfil (o installer gera `.env.EXAMPLE`).
 
-## ![Atualizar](https://img.shields.io/badge/Atualizar-181717?logo=loop&logoColor=white)
+## 🔄 Atualizar (sem perder dados)
 
 ```bash
 git pull
 hermes profile update orchestrator frontend-developer backend-developer database-developer designer
 ```
 
-## ![O que vai](https://img.shields.io/badge/O_que_vai-181717?logo=vault&logoColor=white)
+## 🛡️ O que vai / o que não vai
 
 **Incluído:** `SOUL.md`, `config.yaml` (sanitizado), `skills/` ativas, `plugins/`, `cron/`, `mcp.json`.
 
 **Excluído SEMPRE:** `.env`, `auth.json`, `memories/`, `sessions/`, `logs/`, `state.db*`, caches — garantido pelo `.gitignore` + installer nos dois lados.
 
-## ![Skills por agente](https://img.shields.io/badge/Skills_por_agente-181717?logo=npm&logoColor=white)
+## 🧩 Skills por agente
 
 ### ![orchestrator](https://img.shields.io/badge/-orchestrator-326CE5?logo=kubernetes&logoColor=white)
 
 `agent-browser` | `grilling` | `hermes-administration` | `hermes-multi-profile-ops` | `hermes-profile-distributions` | `hermes-profile-engineering` | `hermes-profile-fleets` | `i-have-adhd` | `planning-and-task-breakdown`
 
-### ![frontend-developer](https://img.shields.io/badge/-frontend-developer-61DAFB?logo=react&logoColor=white)
+### ![frontend-developer](https://img.shields.io/badge/-frontend--developer-61DAFB?logo=react&logoColor=white)
 
 `accessibility` | `agent-browser` | `chrome-devtools` | `code-review` | `docker` | `frontend-design` | `i-have-adhd` | `lighthouse` | `performance` | `playwright` | `r3f-animation` | `react-doctor` | `react-testing-library` | `responsive-design` | `scroll` | `security-review` | `sentry-react-sdk` | `shadcn` | `spline-interactive` | `test-review` | `view-transitions` | `vitest`
 
-### ![backend-developer](https://img.shields.io/badge/-backend-developer-009688?logo=fastapi&logoColor=white)
+### ![backend-developer](https://img.shields.io/badge/-backend--developer-009688?logo=fastapi&logoColor=white)
 
 `api-design-principles` | `api-testing` | `code-review` | `fastapi` | `http-api` | `i-have-adhd` | `pytest` | `ruff` | `security-review` | `sentry-fix-issues` | `sentry-python-sdk` | `sentry-sdk-setup` | `sqlalchemy-alembic-expert-best-practices-code-review` | `test-review`
 
-### ![database-developer](https://img.shields.io/badge/-database-developer-4169E1?logo=postgresql&logoColor=white)
+### ![database-developer](https://img.shields.io/badge/-database--developer-4169E1?logo=postgresql&logoColor=white)
 
 `bigquery-basics` | `i-have-adhd` | `postgres-best-practices` | `sql`
 
@@ -67,12 +67,12 @@ hermes profile update orchestrator frontend-developer backend-developer database
 
 `Design System` | `design-principles` | `design-tokens` | `figma` | `i-have-adhd` | `typography`
 
-## ![Thanks](https://img.shields.io/badge/Thanks-181717?logo=githubsponsors&logoColor=white)
+## 🙏 Thanks
 
 To [@teknium1](https://github.com/teknium1) and the whole [Nous Research](https://nousresearch.com/) team — thank you for building **Hermes Agent**.
 
 I tried a lot of AI tools before this one. I could never get my agents to work the way I wanted — the skills, the memory, the whole setup always felt like fighting the tool instead of using it. Hermes was the first framework that actually let me build the multi-agent team I had in mind, and it just *works*. This repo is the proof.
 
-## ![Licença](https://img.shields.io/badge/Licença-181717?logo=creativecommons&logoColor=white)
+## 📜 Licença
 
 MIT — uso pessoal/estudo. Feito com [Hermes Agent](https://github.com/NousResearch/hermes-agent).
