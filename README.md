@@ -1,5 +1,7 @@
 # 🤖 Hermes Agents — Time Multi-Perfil
 
+![License](https://img.shields.io/badge/license-MIT-blue) ![Release](https://img.shields.io/github/v/release/MatheusCarvalho12/hermes-agents) ![Agentes](https://img.shields.io/badge/agentes-5-orange) ![Skills](https://img.shields.io/badge/skills-55-green)
+
 > Distribuições oficiais dos meus agentes [Hermes](https://hermes-agent.nousresearch.com) (Nous Research) — restauração em qualquer máquina com um comando.
 >
 > **Backup de configuração** — nunca contém memórias, sessões, `.env`, `auth.json` nem chaves de API (o installer do Hermes exclui isso por design).
