@@ -1,6 +1,6 @@
 # My Hermes Agents — Minha Harness Multi-Agente
 
-![License](https://img.shields.io/badge/license-MIT-blue) ![Release](https://img.shields.io/github/v/release/MatheusCarvalho12/my-hermes-agents) ![Agentes](https://img.shields.io/badge/agentes-5-orange) ![Skills](https://img.shields.io/badge/skills-58-green)
+![License](https://img.shields.io/badge/license-MIT-blue) ![Release](https://img.shields.io/github/v/release/MatheusCarvalho12/my-hermes-agents) ![Agentes](https://img.shields.io/badge/agentes-5-orange) ![Skills](https://img.shields.io/badge/skills-59-green)
 
 > **Minha harness pessoal** construída com [Hermes Agent](https://hermes-agent.nousresearch.com) (Nous Research) — o time de agentes que eu sempre quis: cada perfil com papel, skills e memória próprios, orquestrados por mim. Restaurável em qualquer máquina com um comando.
 >
@@ -11,12 +11,12 @@
 | Agente | Papel | Skills ativas |
 |---|---|---|
 | ![orchestrator](https://img.shields.io/badge/-orchestrator-326CE5?logo=kubernetes&logoColor=white) | Orquestrador — gerencia o time via Kanban, decide quem faz o quê, delega e administra o Hermes. | 12 |
-| ![frontend-developer](https://img.shields.io/badge/-frontend--developer-61DAFB?logo=react&logoColor=white) | Frontend — React, shadcn/ui, performance/Lighthouse, a11y e UI pt-BR humanizada. | 22 |
+| ![frontend-developer](https://img.shields.io/badge/-frontend--developer-61DAFB?logo=react&logoColor=white) | Frontend — React, shadcn/ui, performance/Lighthouse, a11y e UI pt-BR humanizada. | 23 |
 | ![backend-developer](https://img.shields.io/badge/-backend--developer-009688?logo=fastapi&logoColor=white) | Backend — FastAPI, SQLAlchemy/Alembic, pytest, APIs REST e segurança. | 14 |
 | ![database-developer](https://img.shields.io/badge/-database--developer-4169E1?logo=postgresql&logoColor=white) | Database — Postgres, SQL, modelagem, migrações e otimização. | 4 |
 | ![designer](https://img.shields.io/badge/-designer-F24E1E?logo=figma&logoColor=white) | Designer — design system, branding, tokens, Figma e direção visual. | 6 |
 
-*Última atualização: 05/08/2026 — 5 agentes, 58 skills ativas no total.*
+*Última atualização: 05/08/2026 — 5 agentes, 59 skills ativas no total.*
 
 ## 💾 Restaurar em outra máquina
 
@@ -53,7 +53,7 @@ hermes profile update orchestrator frontend-developer backend-developer database
 
 ### ![frontend-developer](https://img.shields.io/badge/-frontend--developer-61DAFB?logo=react&logoColor=white)
 
-`accessibility` | `agent-browser` | `chrome-devtools` | `code-review` | `docker` | `frontend-design` | `i-have-adhd` | `lighthouse` | `performance` | `playwright` | `r3f-animation` | `react-doctor` | `react-testing-library` | `responsive-design` | `scroll` | `security-review` | `sentry-react-sdk` | `shadcn` | `spline-interactive` | `test-review` | `view-transitions` | `vitest`
+`accessibility` | `agent-browser` | `chrome-devtools` | `code-review` | `docker` | `frontend-design` | `humanizer` | `i-have-adhd` | `lighthouse` | `performance` | `playwright` | `r3f-animation` | `react-doctor` | `react-testing-library` | `responsive-design` | `scroll` | `security-review` | `sentry-react-sdk` | `shadcn` | `spline-interactive` | `test-review` | `view-transitions` | `vitest`
 
 ### ![backend-developer](https://img.shields.io/badge/-backend--developer-009688?logo=fastapi&logoColor=white)
 

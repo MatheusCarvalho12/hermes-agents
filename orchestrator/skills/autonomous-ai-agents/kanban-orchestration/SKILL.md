@@ -60,3 +60,5 @@ Workers com "NÃO commitar" no body se auto-bloqueiam com `kind: needs_input` (r
 
 ## Scripts
 - `scripts/watch-kanban-tasks.sh` — espera uma lista de tasks ficarem done/blocked e notifica; rodar com `terminal(background=true, notify_on_complete=true)` e continuar o trabalho (0 polling).
+- **O script imprime o BOARD INTEIRO no final** ("TODAS AS TASKS TERMINARAM: ..."), não só as monitoradas — ao ler o output, grep pela task alvo (`grep t_1fde025e`) em vez de se assustar com tasks antigas done na lista (observado 2026-08-05).
+- **Verificação pós-done com `kanban show <id>`**: o campo "Latest summary" do `hermes kanban show` traz o auto-reporte do worker (incluindo lista de skills carregadas, se o body pediu). Para validar SOUL/processo: conferir summary + re-rodar testes/build (`npm test -- --run`, `npx tsc --noEmit`, `npm run build`) — self-report nunca é prova.

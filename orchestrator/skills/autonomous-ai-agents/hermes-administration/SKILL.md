@@ -65,6 +65,13 @@ New pitfalls (validated 2026-08 on the 4-dev-profile trim):
 - Disabled names MUST be the CLI's canonical DISPLAY names, not folder names from `ls skills/`: `Design System` (display) ≠ `design-system` (folder); `test-review` ≠ `nm-pensive-test-review`. Trust the CLI, not the filesystem.
 - Profiles created with `--clone` inherit the FULL `skills/` directory of the source (~75-90 skills) — per-profile trim is a REQUIRED post-clone step. Ready-made script + current team distribution: `hermes-multi-profile-ops/scripts/trim-profile-skills.py` (run with the app's venv python).
 
+## Procedure: Native Profile Cleanup (`hermes skills opt-out --remove`)
+Native alternative to the disabled-list trim for profiles that cloned everything — validated 2026-08 on frontend-developer (90+ → 23 skills):
+1. `hermes -p <profile> skills opt-out --remove` — deletes UNMODIFIED bundled skills from disk; hub/local/modified skills are kept. Verify with `COLUMNS=400 hermes -p <profile> skills list`.
+2. **Blocks on an interactive y/N confirm** — pipe `echo y |`. Bare run only creates the `.no-bundled-skills` marker and prints "Marker kept; no skills deleted".
+3. **Bundled skills in the curated kit get removed too** (e.g. `humanizer` is bundled) — re-copy them from the default profile: `mkdir -p <profile>/skills/creative && cp -r ~/.hermes/skills/creative/humanizer <profile>/skills/creative/`.
+4. **Cloned admin skills survive opt-out** (e.g. `hermes-administration` is local, not bundled) — they stay on disk; disable them per-profile via the `save_disabled_skills` script with `HERMES_HOME=<profile-home>` env set (see Disable Skills above). After cleanup, curate the kit: reinstall missing hub skills per profile, then re-verify with `hermes -p <profile> skills list`.
+
 ## Procedure: MCP Servers & RTK (per-profile tooling)
 - Add per profile: `hermes -p <profile> mcp add <name> --command npx --args ...` (`--args` must be the LAST option). After discovery it prompts `Enable all N tools? [Y/n/select]` — under a pipe it CANCELS and saves nothing → prefix `echo y |`. Verify with `hermes -p <p> mcp list` / `mcp test <name>` (test shows the discovered tool names).
 - Key-gated servers connect but report "no tools" when the key never reaches the process → pass `--env KEY=VAL` (stored as `mcp_servers.<name>.env` in that profile's config.yaml — official mechanism) and also keep the key in the profile's `.env`. `hermes mcp catalog` (Nous-approved, one-click) rarely contains these — add manually.
@@ -88,6 +95,17 @@ See `references/memory-providers.md` for mem0's three modes (platform/oss/selfho
 6. User prefers Hermes' NATIVE skill-creation loop (background review, `skills.creation_nudge_interval`) over third-party tools; Anthropic `skill-creator` is method reference only, never installed (conflict risk).
 
 Distilled docs, the native skill-creation mechanism (with code refs), the skill-creator methodology, the hub skill audit table, and profile setup state: `references/profiles-and-soul.md`.
+
+## Procedure: Read-only Hermes Architecture Audit
+Use when the user asks for an inventory or architecture review of `HERMES_HOME` and explicitly forbids edits. The detailed checklist lives in `references/read-only-architecture-audit.md`.
+
+1. Resolve the real home from `$HERMES_HOME` (fallback `~/.hermes`) and enumerate only the root plus `profiles/*`; never assume a container path.
+2. Run `hermes profile list` and record profile names and gateway status. A stopped gateway is an operational finding for Kanban dispatch, not proof that no process exists.
+3. Use `COLUMNS=400 hermes [-p <profile>] skills list` as the canonical source for skill display names, source, trust, enabled/disabled status, and counts. Filesystem `SKILL.md` inventory is supplemental: use it to detect duplicate files, duplicate frontmatter names, and folder/display-name mismatches such as renamed or title-cased skills.
+4. Map profile-level `SOUL.md` files and inspect only structural metadata (headings, line counts, skill/trigger mentions). Distinguish authoritative profile context from nested repository/vendor `AGENTS.md` files; report `.hermes.md` and `CLAUDE.md` presence/absence explicitly.
+5. Inspect `config.yaml` for MCP server names, `enabled` flags, command shape, argument counts, and the presence of secret-bearing environment keys. Never print `.env`, `auth.json`, token values, API-key values, or raw MCP arguments that may contain secrets.
+6. Compare skill hashes and canonical frontmatter names across profiles. Separate expected isolated-profile copies from actionable collisions: same canonical name with divergent content, or multiple files collapsing to one CLI entry.
+7. Produce a short report with absolute paths, canonical CLI counts/names, trigger coverage, MCP topology, and verified risks. This procedure is read-only: do not create backups, edit config, or write reports to disk.
 
 ## Procedure: Hub Skill Audit & Distribution (this user's workflow)
 1. User supplies a skill list (names from memory/hub) → **audit, never build**: `hermes skills search <term>` → table with Name/Source/Trust/Identifier (`skills-sh/owner/repo/path`). Preview with `hermes skills inspect <id>` (also resolves some raw GitHub paths).

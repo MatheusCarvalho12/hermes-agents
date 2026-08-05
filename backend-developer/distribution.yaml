@@ -1,5 +1,5 @@
 name: backend-developer
-version: 1.0.15
+version: 1.0.16
 description: 'Backend developer: FastAPI, SQLAlchemy/Alembic, pytest, APIs REST, integrações
   e segurança.'
 author: Matheus Carvalho
