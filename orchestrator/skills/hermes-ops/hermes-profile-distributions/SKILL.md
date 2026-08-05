@@ -38,6 +38,21 @@ Official docs: https://hermes-agent.nousresearch.com/docs/user-guide/profile-dis
 3. The installer strips hard-excluded paths on ITS side too — but that protects installers, NOT the author. The repo author is exposed; scan before push.
 4. Only copy ENABLED skills (the `skills.disabled` list in config.yaml tells you what to skip). Copying the whole `skills/` dir ships ~50MB of disabled clutter per profile.
 
+## PITFALL: skills live at ANY depth — copy recursively, not root-only
+Skills are stored in category folders (`hermes-ops/hermes-multi-profile-ops/`, `autonomous-ai-agents/hermes-administration/`, `creative/humanizer/`) AND at the root (`grilling/`, `i-have-adhd/`). A copy script that only scans the top level silently DROPS every categorized skill — real case: the orchestrator published with 4 skills instead of 9 (missing `hermes-multi-profile-ops`, `hermes-administration`, etc.). Rule: enumerate active skills from the CLI, then `find_skill_dir()` each one by walking the whole tree for a `SKILL.md` whose frontmatter `name:` matches.
+
+**CLI enumeration technique** (`hermes -p <profile> skills list --enabled-only`, `COLUMNS=400`):
+- Table separator is `│` (U+2502 BOX DRAWINGS LIGHT VERTICAL), NOT `┃`.
+- Parse by FIXED cell index, not by filtering empties: `cells = [c.strip() for c in line.split("│")]` → `['', name, category, source, trust, status, '']` → require `len(cells) >= 7`, read `name=cells[1]`, `source=cells[3]`, `status=cells[5]`. If you filter empty cells first, rows with an empty category collapse to 4 cells and get dropped (that's exactly how the designer's 6 non-builtin skills were lost).
+- Only include `source != "builtin"` — builtin skills ship with Hermes and don't belong in the distribution.
+
+## Auto-sync: keep the distribution repo current without being asked (validated 2026-08)
+User requirement: "toda vez que atualizar alguma coisa, faz push automático, muda a versão" — a repo that stays fresh as a portfolio. Working pattern (scripts/sync-hermes-agents.py, cron every 2h):
+1. Script re-runs the full publish workflow: rebuild staging from live profiles → sanitize configs → bump PATCH version in each `distribution.yaml` → regenerate README (agent table + skill counts + date) → `git add/commit/push`, tag `v<version>` from the orchestrator manifest.
+2. Silent when nothing changed (`git status --porcelain` empty → exit 0, no commit, no push) → zero CPU/bandwidth when idle, perfect for a cron watchdog.
+3. Cron: `cronjob action=create no_agent=true script=sync-hermes-agents.sh schedule="every 2h"` (sh wrapper execs the venv python; script path resolves under ~/.hermes/scripts/). Test once with `cronjob action=run`.
+4. **`--check` mode must NOT mutate**: don't bump versions or write README when only reporting; guard the bump with `if status and not check_only`.
+
 ## Publish workflow (validated 2026-08, repo: MatheusCarvalho12/hermes-agents)
 Full step-by-step with code in `references/publish-and-restore.md`. Summary:
 
@@ -89,3 +104,5 @@ Distribution-owned files (SOUL.md, config.yaml, skills/, cron/, mcp.json) are re
 ## Support files
 - `references/publish-and-restore.md` — exact copy/sanitize/scan code + validated transcript
 - `templates/distribution.yaml` — manifest starter per profile
+- `scripts/sync-hermes-agents.py` — full auto-sync script (rebuild → sanitize → bump → README → push + tag); run with the Hermes venv python (`~/.hermes/hermes-agent/venv/bin/python`)
+- `scripts/sync-hermes-agents.sh` — cron wrapper; wire as `cronjob action=create no_agent=true script=sync-hermes-agents.sh schedule="every 2h"`

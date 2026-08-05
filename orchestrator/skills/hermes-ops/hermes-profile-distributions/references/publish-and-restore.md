@@ -129,5 +129,11 @@ echo "designer-restore-test" | hermes profile delete designer-restore-test
 
 ## Pitfalls not obvious from docs
 - Direct URL install (`hermes profile install <url>`) fails on multi-profile repos: "No distribution.yaml at the root". Must clone and install per subfolder.
-- Git author identity: profile configs are inherited by all agents, but the git author comes from `git config --global user.name/email`. The user's global was `amaterei` (Mac username) while the GitHub account is `MatheusCarvalho12` — commits landed on the right account (email links) but showed the wrong name. Fix: `git config --global user.name "Matheus Carvalho"`.
+- Git author identity: profile configs are inherited by all agents, but the git author comes from `git config --global user.name/email`. The user's global was `amaterei` (Mac username) while the GitHub account is `MatheusCarvalho12` — commits landed on the right account (email links) but showed the wrong name. Fix: `git config --global user.name "Matheus Carvalho"`. Verify with `git var GIT_AUTHOR_IDENT`.
 - Config.yaml may also carry an `aside` MCP with a machine-specific command path — harmless to publish, but don't expect it to work on another machine as-is.
+
+## BUG VALIDATED 2026-08: root-only skill copy drops categorized skills
+First publish showed `orchestrator` with only 4 skills (agent-browser, grilling, i-have-adhd, planning-and-task-breakdown) while the profile actually had 9 active non-builtin skills. Cause: the copy loop only scanned the top level of `skills/` and skipped category dirs (`hermes-ops/`, `autonomous-ai-agents/`, `creative/`, `github/`) — so `hermes-multi-profile-ops`, `hermes-administration`, `hermes-profile-engineering`, `hermes-profile-fleets`, `hermes-profile-distributions` were lost.
+Fix (in `scripts/sync-hermes-agents.py`): enumerate enabled skills from the CLI, then `find_skill_dir()` walks the WHOLE tree matching SKILL.md frontmatter `name:`. 
+Also learned: `hermes skills list --enabled-only` table separator is `│` (U+2502) — NOT `┃`; parse by fixed index `cells[1]/cells[3]/cells[5]` with `len(cells) >= 7` (filtering empty cells collapses rows whose category is blank, dropping valid skills). Skip `source == "builtin"` (ships with Hermes).
+Final counts after fix: orchestrator 9, frontend 22, backend 14, database 4, designer 6 = 55 total.
