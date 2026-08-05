@@ -1,0 +1,28 @@
+# distribution.yaml — manifest for a Hermes profile distribution
+# Place at the root of the profile folder inside the git repo.
+# Docs: https://hermes-agent.nousresearch.com/docs/user-guide/profile-distributions
+
+name: profile-name            # REQUIRED — becomes the profile name (override with --name on install)
+version: 1.0.0                # bump + git tag on each release
+description: "One line: what this agent is good at."   # shown in install preview + kanban routing
+author: "Your Name"
+license: "MIT"
+hermes_requires: ">=0.12.0"   # minimum Hermes version
+
+# Env vars the agent needs. Installer checks these against the user's shell/.env
+# and writes them (commented) into the installed profile's .env.EXAMPLE.
+env_requires:
+  - name: CONTEXT7_API_KEY
+    description: "Context7 API key (optional on free tier)"
+    required: false
+    default: ""
+  - name: MORPH_API_KEY
+    description: "Morph API key for code search (warpgrep)"
+    required: false
+    default: ""
+
+# Optional: restrict which paths are replaced on `hermes profile update`.
+# Default (omit this): SOUL.md, config.yaml, mcp.json, skills/, cron/, distribution.yaml.
+# distribution_owned:
+#   - SOUL.md
+#   - skills/research/
