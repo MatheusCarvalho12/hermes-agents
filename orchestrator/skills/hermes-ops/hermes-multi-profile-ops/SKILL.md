@@ -83,10 +83,36 @@ hermes kanban list / show <id> / watch
   ID=$(hermes kanban create "título" --assignee <perfil> --body "$(cat /tmp/body.md)" 2>/dev/null | grep -o 't_[a-f0-9]*' | head -1)
   ```
 - Bodies longos com acentos/caracteres especiais (ç, ÷, aspas): gravar o body num arquivo e passar `--body "$(cat /tmp/body.md)"` — evita quebra de quoting em cascata e permite reuso
-- Dependência entre tasks: `--parent <id>` no create (child só dispara quando o parent termina — criar na ordem: parents primeiro, capturar IDs, depois children). Alternativa posterior: `hermes kanban link <parent> <child>`
+- Dependência entre tasks: `--parent <id>` no create (child só dispara quando o parent termina — criar na ordem: parents primeiro, capturar IDs, depois children). Alternativa posterior: `hermes kanban link <parent> <child>`. **`--parent` é REPETÍVEL**: `--parent A --parent B` → child só roda quando TODOS os parents fecharem — use para serializar workers que editam o MESMO arquivo (ex: backend corrige a query e frontend aplica polish no mesmo `generate_dashboard.py`; sem isso, conflito garantido de edição paralela)
 - Feature com dados reais desconhecidos (ex: colunas JSONB de uma fonte nova): a primeira task é DESCOBERTA/mapeamento que entrega um doc (`docs/*.md` com colunas reais + cálculo validado); as tasks de código ficam `--parent` dela — nunca chutar antes de ver os dados
+- **Checklist de conformidade antes de fechar**: re-ler o TEXTO ORIGINAL da demanda e conferir requisito por requisito (o usuário pede "ve se ta adequado a tudo do texto"). Gap real: worker usou tonelagem PLANEJADA onde a demanda dizia "toneladas movimentadas" (realizado) — o doc até documentava a dúvida ("confirmar com o negócio") e seguiu com o valor errado. Quando o texto mandar algo e a implementação divergir, abrir task de correção, não aceitar o "documentado e segue"
 - Para paralelizar DB + backend no mesmo repo (`--workspace dir:/abs`): o orquestrador define o CONTRATO (nomes de tabelas/colunas/arquivos) no corpo das tasks — cada worker mexe só nos arquivos da sua task, sem pisar no outro
-- Usuário acompanha workers pelo KANBAN (dashboard/`kanban watch`/comentários), NÃO pelas seções dos perfis no desktop (sessões de worker são curtas/efêmeras; cada perfil tem HERMES_HOME próprio)
+- Usuário acompanha workers pelo KANBAN (dashboard/`kanban watch`/comentários), NÃO pelas seções dos perfis no desktop (sessões de worker são curtas/efêmeras; cada perfil tem HERMES_HOME próprio). Se o usuário reclamar que não vê as sessões no desktop, explicar isso e apontar o kanban — não é bug. Diagnóstico real (2026-08): a sidebar do app mostra SÓ sessões criadas na UI (source desktop) — com perfil trocado no seletor ela exibe "No sessions yet" mesmo com trabalho feito; os workers headless gravam request_dumps em `~/.hermes/profiles/<p>/sessions/` e o app não os indexa. Para PROVAR atividade/entregas de um perfil: `hermes -p <perfil> sessions list` (títulos tipo "work kanban task t_xxx", última atividade) e `sessions stats` (Total sessions/messages); e o transcript das ações: `kanban log <id>` (comandos reais) + `kanban show <id>` (heartbeats/summary).
+- **Workers são Hermes nativos, NÃO Codex/CLIs externos**: cada task vira um processo `hermes -p <perfil> kanban run <task>` que carrega as skills DO PRÓPRIO PERFIL (SOUL com gatilhos força o uso — logs mostram skill_view no início de cada task). Se o usuário perguntar "estão codando com codex?", responder que não: as skills `codex`/`claude-code`/`opencode` são fluxo ALTERNATIVO de delegação externa, não o padrão do kanban. Inventário confirmado de skills por perfil: `references/team-inventory.md`
+
+### Monitorar SEM polling (usuário corrigiu explicitamente: "esses sleep é a forma mais eficiente???")
+NUNCA ficar em loop `sleep N; kanban list` esperando task fechar. Usar monitor async:
+```bash
+# scripts/watch-task.sh <id1> [id2 ...] — espera as tasks saírem de running/ready e sai
+# rodar com terminal(background=true, notify_on_complete=true) → o orquestrador é avisado NA HORA EXATA
+```
+Fluxo: dispara o monitor em background → responde ao usuário com o estado atual → quando a notificação chega, verifica artefatos e reporta. Zero turnos gastos em polling.
+
+### protocol_violation / gave_up (worker "crashou" sem completar)
+Sintoma: worker sai rc=0 mas sem chamar kanban_complete/block → dispatcher conta como crash; após ~2-3 violações dá `gave_up` e a task fica blocked. **O trabalho pode ter sido feito mesmo assim** (ex: HTML gerado, código escrito antes do crash).
+Recuperação:
+1. Verificar artefatos reais (arquivos modificados, output gerado, grep no HTML) — se o trabalho existe e está bom, `kanban complete` manual (o erro do dispatcher instrui: "verify it and report the result via kanban_complete")
+2. Se faltou só o passo final, `kanban comment` com instrução EXPLÍCITA "AO TERMINAR, CHAME kanban_complete OBRIGATORIAMENTE" + `kanban unblock` + `kanban promote` (promote só aceita todo/blocked — se já está ready, o dispatcher pega sozinho)
+3. Causa raiz comum: sessão longa onde o modelo "esquece" o call terminal — instruir o passo final no comment reduz recorrência
+
+### review-required auto-block (comportamento bom, não é erro)
+Workers com SOUL "verificação única" se auto-bloqueiam com `blocked {reason: 'review-required: ...'}` após entregar (nada commitado, pedindo revisão). Fluxo do orquestrador: ler artefatos reais (diff/sql/html) → `kanban comment` aprovando → `kanban complete` → a task filha é promovida sozinha. Nunca refazer o trabalho.
+
+### Pré-requisitos de ambiente ANTES de delegar (economiza minutos de worker)
+Workers perdem muito tempo caçando conexão quando o repo não tem `.env`/credenciais (ex: datalake sem `.env`, DATABASE_URL ausente → o worker fica sondando `.env` de OUTROS projetos). Antes de criar tasks que dependem de DB/API:
+1. Conferir se `.env`/credenciais existem no repo; se não, pedir a connection string ao usuário e criar o `.env` (chmod 600; `.gitignore` geralmente já cobre)
+2. Testar a conexão uma vez (select 1) antes de disparar os workers
+3. Deixar `kanban comment` na task com o jeito de conectar (ex: `export $(cat .env | xargs)`)
 
 ## SOUL.md de perfis — convenções do usuário (obrigatório)
 Estrutura: Identity / Style / Código / Skills (gatilhos) / Verificação / Context7 / Morph / Ferramentas / Avoid / Defaults. Template em `templates/soul-md-triggers.md`.
