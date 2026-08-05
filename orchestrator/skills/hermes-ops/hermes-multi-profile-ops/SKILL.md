@@ -77,6 +77,15 @@ hermes kanban list / show <id> / watch
 - **Teste de fumaça**: criar task trivial e `hermes kanban show <id>` até done (~25s) antes de confiar no pipeline
 - PARALELISMO: `max_in_progress_per_profile: null` = sem limite (N workers do mesmo perfil em paralelo); `auto_decompose: true` quebra feature grande em tasks menores (3/tick) — o usuário espera decomposição + paralelismo máximos
 - Workspaces `scratch` são EFÊMEROS (deletados ao completar) — usar `--workspace dir:/abs` ou `worktree:` para preservar output
+- ⚠️ `--priority` é INT (ex: `--priority 10`), NÃO string — `--priority high` falha com `invalid int value` e a task NÃO é criada (erro vai pro stderr; some fácil se suprimir). A flag `--json` existe no help do create mas não foi validada na prática — capturar ID pelo stdout é o caminho robusto
+- Capturar ID da task: a linha `Created t_XXXX (ready, assignee=...)` sai na STDOUT; o aviso "No gateway is running" vai pra STDERR e pode ser FALSO-NEGATIVO (gateway vivo via launchd — conferir `hermes gateway status`/`ps` antes de achar que o dispatcher morreu). Padrão validado:
+  ```bash
+  ID=$(hermes kanban create "título" --assignee <perfil> --body "$(cat /tmp/body.md)" 2>/dev/null | grep -o 't_[a-f0-9]*' | head -1)
+  ```
+- Bodies longos com acentos/caracteres especiais (ç, ÷, aspas): gravar o body num arquivo e passar `--body "$(cat /tmp/body.md)"` — evita quebra de quoting em cascata e permite reuso
+- Dependência entre tasks: `--parent <id>` no create (child só dispara quando o parent termina — criar na ordem: parents primeiro, capturar IDs, depois children). Alternativa posterior: `hermes kanban link <parent> <child>`
+- Feature com dados reais desconhecidos (ex: colunas JSONB de uma fonte nova): a primeira task é DESCOBERTA/mapeamento que entrega um doc (`docs/*.md` com colunas reais + cálculo validado); as tasks de código ficam `--parent` dela — nunca chutar antes de ver os dados
+- Para paralelizar DB + backend no mesmo repo (`--workspace dir:/abs`): o orquestrador define o CONTRATO (nomes de tabelas/colunas/arquivos) no corpo das tasks — cada worker mexe só nos arquivos da sua task, sem pisar no outro
 - Usuário acompanha workers pelo KANBAN (dashboard/`kanban watch`/comentários), NÃO pelas seções dos perfis no desktop (sessões de worker são curtas/efêmeras; cada perfil tem HERMES_HOME próprio)
 
 ## SOUL.md de perfis — convenções do usuário (obrigatório)
