@@ -1,4 +1,4 @@
-# 🚀 My Hermes Agents — Minha Harness Multi-Agente
+# My Hermes Agents — Minha Harness Multi-Agente
 
 ![License](https://img.shields.io/badge/license-MIT-blue) ![Release](https://img.shields.io/github/v/release/MatheusCarvalho12/my-hermes-agents) ![Agentes](https://img.shields.io/badge/agentes-5-orange) ![Skills](https://img.shields.io/badge/skills-55-green)
 
@@ -6,7 +6,7 @@
 >
 > **Backup de configuração** — nunca contém memórias, sessões, `.env`, `auth.json` nem chaves de API (o installer do Hermes exclui isso por design).
 
-## 🧑‍💻 O time
+## ![O time](https://img.shields.io/badge/O_time-181717?logo=github&logoColor=white)
 
 | Agente | Papel | Skills ativas |
 |---|---|---|
@@ -18,7 +18,7 @@
 
 *Última atualização: 05/08/2026 — 5 agentes, 55 skills ativas no total.*
 
-## 🚀 Restaurar em outra máquina
+## ![Restaurar](https://img.shields.io/badge/Restaurar-181717?logo=rocket&logoColor=white)
 
 ```bash
 git clone https://github.com/MatheusCarvalho12/my-hermes-agents.git
@@ -32,20 +32,20 @@ hermes profile install ./designer --alias
 
 Suas memórias/sessões nascem vazias por design; chaves de API você preenche no `.env` de cada perfil (o installer gera `.env.EXAMPLE`).
 
-## 🔄 Atualizar (sem perder dados)
+## ![Atualizar](https://img.shields.io/badge/Atualizar-181717?logo=loop&logoColor=white)
 
 ```bash
 git pull
 hermes profile update orchestrator frontend-developer backend-developer database-developer designer
 ```
 
-## 🛡️ O que vai / o que não vai
+## ![O que vai](https://img.shields.io/badge/O_que_vai-181717?logo=vault&logoColor=white)
 
 **Incluído:** `SOUL.md`, `config.yaml` (sanitizado), `skills/` ativas, `plugins/`, `cron/`, `mcp.json`.
 
 **Excluído SEMPRE:** `.env`, `auth.json`, `memories/`, `sessions/`, `logs/`, `state.db*`, caches — garantido pelo `.gitignore` + installer nos dois lados.
 
-## 📦 Skills por agente
+## ![Skills por agente](https://img.shields.io/badge/Skills_por_agente-181717?logo=npm&logoColor=white)
 
 ### ![orchestrator](https://img.shields.io/badge/-orchestrator-326CE5?logo=kubernetes&logoColor=white)
 
@@ -67,12 +67,12 @@ hermes profile update orchestrator frontend-developer backend-developer database
 
 `Design System` | `design-principles` | `design-tokens` | `figma` | `i-have-adhd` | `typography`
 
-## 🙏 Thanks
+## ![Thanks](https://img.shields.io/badge/Thanks-181717?logo=githubsponsors&logoColor=white)
 
 To [@teknium1](https://github.com/teknium1) and the whole [Nous Research](https://nousresearch.com/) team — thank you for building **Hermes Agent**.
 
-I tried a lot of AI tools before this one. I could never get my agents to work the way I wanted — the skills, the memory, the whole setup always felt like fighting the tool instead of using it. Hermes was the first framework that actually let me build the multi-agent team I had in mind, and it just *works*. This repo is the proof. 🙏
+I tried a lot of AI tools before this one. I could never get my agents to work the way I wanted — the skills, the memory, the whole setup always felt like fighting the tool instead of using it. Hermes was the first framework that actually let me build the multi-agent team I had in mind, and it just *works*. This repo is the proof.
 
-## 📜 Licença
+## ![Licença](https://img.shields.io/badge/Licença-181717?logo=creativecommons&logoColor=white)
 
 MIT — uso pessoal/estudo. Feito com [Hermes Agent](https://github.com/NousResearch/hermes-agent).
