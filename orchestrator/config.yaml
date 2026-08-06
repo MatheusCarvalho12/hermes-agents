@@ -168,6 +168,37 @@ updates:
   pre_update_backup: false
   backup_keep: 5
   non_interactive_local_changes: stash
+secrets:
+  onepassword:
+    enabled: true
+    env:
+      NOPECHA_API_KEY: op://Hermes/NopeCHA/credencial
+      SISCOMEX_CLIENT_ID: op://Hermes/Siscomex Portal Unico API/SISCOMEX_CLIENT_ID
+      SISCOMEX_CLIENT_SECRET: op://Hermes/Siscomex Portal Unico API/SISCOMEX_CLIENT_SECRET
+      FLOWMEX_MAINO_APPLICATION_UID: op://Hermes/4tdj67dwz6yfx3ghrcnbt27w3y/Application
+        UID
+      FLOWMEX_MAINO_USERNAME: op://Hermes/4tdj67dwz6yfx3ghrcnbt27w3y/username
+      FLOWMEX_MAINO_PASSWORD: op://Hermes/4tdj67dwz6yfx3ghrcnbt27w3y/password
+      MAINO_BASE_URL: op://Hermes/qt2gasua4xmzgk4rw2lxigochy/MAINO_BASE_URL
+      MAINO_CRED_KEY: op://Hermes/qt2gasua4xmzgk4rw2lxigochy/MAINO_CRED_KEY
+      SISCOMEX_BASE_URL: op://Hermes/qt2gasua4xmzgk4rw2lxigochy/SISCOMEX_BASE_URL
+      PLUGBOLETO_BASE_URL: op://Hermes/qt2gasua4xmzgk4rw2lxigochy/PLUGBOLETO_BASE_URL
+      PLUGBOLETO_TOKEN_SH: op://Hermes/qt2gasua4xmzgk4rw2lxigochy/PLUGBOLETO_TOKEN_SH
+      OPENFINANCE_BASE_URL: op://Hermes/qt2gasua4xmzgk4rw2lxigochy/OPENFINANCE_BASE_URL
+      OPENFINANCE_TOKEN_SH: op://Hermes/qt2gasua4xmzgk4rw2lxigochy/OPENFINANCE_TOKEN_SH
+      OPENFINANCE_PROXY_URL: op://Hermes/qt2gasua4xmzgk4rw2lxigochy/OPENFINANCE_PROXY_URL
+      FLOWMEX_BILLING_PLUGBOLETO_WEBHOOK_SECRET: op://Hermes/qt2gasua4xmzgk4rw2lxigochy/FLOWMEX_BILLING_PLUGBOLETO_WEBHOOK_SECRET
+      FLOWMEX_BILLING_PLUGBOLETO_WEBHOOK_DEDUPE_SECRET: op://Hermes/qt2gasua4xmzgk4rw2lxigochy/FLOWMEX_BILLING_PLUGBOLETO_WEBHOOK_DEDUPE_SECRET
+      TENANT_ORGANIZATION_ID: op://Hermes/qt2gasua4xmzgk4rw2lxigochy/TENANT_ORGANIZATION_ID
+      PLUGBOLETO_ENV: op://Hermes/qt2gasua4xmzgk4rw2lxigochy/PLUGBOLETO_ENV
+      PLUGBOLETO_CNPJ_SH: op://Hermes/qt2gasua4xmzgk4rw2lxigochy/PLUGBOLETO_CNPJ_SH
+      OPENFINANCE_CNPJ_SH: op://Hermes/qt2gasua4xmzgk4rw2lxigochy/OPENFINANCE_CNPJ_SH
+      OPENFINANCE_PROXY_SECRET: op://Hermes/qt2gasua4xmzgk4rw2lxigochy/OPENFINANCE_PROXY_SECRET
+      TEST_CNPJ: op://Hermes/qt2gasua4xmzgk4rw2lxigochy/TEST_CNPJ
+      SISCARGA_PROXY_SECRET: op://Hermes/qt2gasua4xmzgk4rw2lxigochy/SISCARGA_PROXY_SECRET
+      SISCARGA_NOTE: op://Hermes/qt2gasua4xmzgk4rw2lxigochy/SISCARGA_NOTE
+      SISCARGA_PROVIDER_URL: op://Hermes/qt2gasua4xmzgk4rw2lxigochy/SISCARGA_PROVIDER_URL
+    account: my.1password.com
 _config_version: 33
 session_reset:
   mode: none
@@ -204,6 +235,12 @@ image_gen:
 plugins:
   enabled:
     - rtk-rewrite
+mcp_servers:
+  geonode:
+    url: https://scraper.geonode.io/mcp
+    headers:
+      X-Api-Key: geonode_I73nuoLh7H
+    timeout: 180
 
 # ── Fallback Model ────────────────────────────────────────────────────
 # Automatic provider failover when primary is unavailable.
