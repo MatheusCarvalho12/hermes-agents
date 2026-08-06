@@ -1,6 +1,6 @@
 # My Hermes Agents — Minha Harness Multi-Agente
 
-![License](https://img.shields.io/badge/license-MIT-blue) ![Release](https://img.shields.io/github/v/release/MatheusCarvalho12/my-hermes-agents) ![Agentes](https://img.shields.io/badge/agentes-5-orange) ![Skills](https://img.shields.io/badge/skills-85-green)
+![License](https://img.shields.io/badge/license-MIT-blue) ![Release](https://img.shields.io/github/v/release/MatheusCarvalho12/my-hermes-agents) ![Agentes](https://img.shields.io/badge/agentes-5-orange) ![Skills](https://img.shields.io/badge/skills-87-green)
 
 > **Minha harness pessoal** construída com [Hermes Agent](https://hermes-agent.nousresearch.com) (Nous Research) — o time de agentes que eu sempre quis: cada perfil com papel, skills e memória próprios, orquestrados por mim. Restaurável em qualquer máquina com um comando.
 >
@@ -10,13 +10,13 @@
 
 | Agente | Papel | Skills ativas |
 |---|---|---|
-| ![orchestrator](https://img.shields.io/badge/-orchestrator-326CE5?logo=kubernetes&logoColor=white) | Orquestrador — gerencia o time via Kanban, decide quem faz o quê, delega e administra o Hermes. | 35 |
+| ![orchestrator](https://img.shields.io/badge/-orchestrator-326CE5?logo=kubernetes&logoColor=white) | Orquestrador — gerencia o time via Kanban, decide quem faz o quê, delega e administra o Hermes. | 37 |
 | ![frontend-developer](https://img.shields.io/badge/-frontend--developer-61DAFB?logo=react&logoColor=white) | Frontend — React, shadcn/ui, performance/Lighthouse, a11y e UI pt-BR humanizada. | 23 |
 | ![backend-developer](https://img.shields.io/badge/-backend--developer-009688?logo=fastapi&logoColor=white) | Backend — FastAPI, SQLAlchemy/Alembic, pytest, APIs REST e segurança. | 15 |
 | ![database-developer](https://img.shields.io/badge/-database--developer-4169E1?logo=postgresql&logoColor=white) | Database — Postgres, SQL, modelagem, migrações e otimização. | 5 |
 | ![designer](https://img.shields.io/badge/-designer-F24E1E?logo=figma&logoColor=white) | Designer — design system, branding, tokens, Figma e direção visual. | 7 |
 
-*Última atualização: 06/08/2026 — 5 agentes, 85 skills ativas no total.*
+*Última atualização: 06/08/2026 — 5 agentes, 87 skills ativas no total.*
 
 ## 💾 Restaurar em outra máquina
 
@@ -49,7 +49,7 @@ hermes profile update orchestrator frontend-developer backend-developer database
 
 ### ![orchestrator](https://img.shields.io/badge/-orchestrator-326CE5?logo=kubernetes&logoColor=white)
 
-`agent-browser` | `ask-matt` | `code-review` | `codebase-design` | `diagnosing-bugs` | `domain-modeling` | `github-readme-badges` | `grill-me` | `grill-with-docs` | `grilling` | `handoff` | `hermes-administration` | `hermes-multi-profile-iteration` | `hermes-multi-profile-ops` | `hermes-profile-distributions` | `hermes-profile-engineering` | `hermes-profile-fleets` | `hermes-team-operations` | `i-have-adhd` | `implement` | `improve-codebase-architecture` | `kanban-orchestration` | `planning-and-task-breakdown` | `prototype` | `resolving-merge-conflicts` | `tdd` | `teach` | `to-questionnaire` | `to-spec` | `to-tickets` | `triage` | `wait-what` | `wayfinder` | `wizard` | `writing-for-agents`
+`agent-browser` | `ask-matt` | `code-review` | `code-search-agents` | `codebase-design` | `database-migrations` | `diagnosing-bugs` | `domain-modeling` | `github-readme-badges` | `grill-me` | `grill-with-docs` | `grilling` | `handoff` | `hermes-administration` | `hermes-multi-profile-iteration` | `hermes-multi-profile-ops` | `hermes-profile-distributions` | `hermes-profile-engineering` | `hermes-profile-fleets` | `hermes-team-operations` | `i-have-adhd` | `implement` | `improve-codebase-architecture` | `kanban-orchestration` | `planning-and-task-breakdown` | `prototype` | `resolving-merge-conflicts` | `tdd` | `teach` | `to-questionnaire` | `to-spec` | `to-tickets` | `triage` | `wait-what` | `wayfinder` | `wizard` | `writing-for-agents`
 
 ### ![frontend-developer](https://img.shields.io/badge/-frontend--developer-61DAFB?logo=react&logoColor=white)
 
