@@ -90,6 +90,7 @@ Structure: `# Identity` → `# Style` → `# <domain section>` → `# Skills —
 - Test philosophy: few, scenario-based tests (acceptance criteria; idempotency matters — e.g. like button clicks, "new section" button must not create 30 empty rows). Never test for testing's sake.
 - Session detail (the full architecture-rework decision tree, Q1–Q12): `references/invocation-architecture.md`.
 - Rodada 2 de validação (task GRANDE, 14 skills, protocol violation recorrente, recovery com commit órfão): `references/soul-v2-validation-round2.md`.
+- Rodada 3 — RESOLUÇÃO do protocol violation (to-tickets): cadeia T1→T2→T3 com `--parent` encadeado fechou `done` em ~3 min por ticket, protocolo OK, sem recovery; causa raiz era task gigante inchando o contexto → API do modelo cai. Receita + pitfalls de instalação: `references/to-tickets-validation.md`.
 
 ### 6. Kanban activation (orchestrator delegates)
 ```bash
@@ -115,6 +116,8 @@ Depois de reescrever o SOUL de UM perfil (ex: frontend), NÃO replique nos outro
 3. Criar task de PROVA **do tamanho real das demandas do usuário** (correção 2026-08-05: ele rejeitou micro-task tipo "crie um StatusBadge" — "minhas tasks não vão ser uma coisa pequena assim"). Task pequena valida gatilhos e processo; task GRANDE (ex: refatorar o dashboard inteiro mantendo a lógica de negócio, com spec do designer como contrato) valida escopo, autonomia e entrega de verdade. Body com "No summary, liste as skills que você CARREGOU" + "CHAME kanban_complete OBRIGATORIAMENTE" + seção "Escopo autorizado / PROIBIDO tocar" (mata o escopo vazado).
 4. Medir: skills carregadas no summary (sem lista → devolve), entrega real (build/testes/branch), aderência ao gatilho, tempo gasto (escopo vazado = tempo estourado com diff fora da task — conferir `git status --short` e `git diff --stat` contra o que a task pediu).
 5. Só então replicar SOUL + kit nos outros perfis. Se não seguiu → iterar o SOUL até seguir (usuário prefere iterar a "acertar de primeira").
+   **Replicação validada (2026-08-05)**: após o frontend passar na prova, os 3 perfis restantes foram tratados na mesma sessão — backup do SOUL (`cp SOUL.md SOUL.md.bak-$(date +%Y%m%d-%H%M%S)`), `echo y | hermes -p <p> skills opt-out --remove`, repor humanizer (`cp -r ~/.hermes/skills/creative/humanizer <p>/skills/creative/`), desabilitar hermes-administration (script save_disabled_skills com `HERMES_HOME=<p>`), aplicar SOUL v2 adaptado ao papel. Kits finais: backend 16 ativas (14 kit + humanizer + i-have-adhd), database 6, designer 8. Conferir sempre com `COLUMNS=400 hermes -p <p> skills list`.
+6. **Protocol violation recorrente ≠ SOUL ruim — cheque o tamanho da task primeiro (validado rodada 3)**: se o worker "entrega mas não fecha o protocolo" (rc=0 sem kanban_complete, várias vezes), o diagnóstico NÃO é desobediência — é a task monolítica inchando o contexto até a API do modelo cair (503/ReadTimeout/Connection error no final do log). Solução comprovada: quebrar a demanda em tickets verticais do to-tickets (cada um ~3 min, fecha `done` sozinho) em vez de iterar o SOUL. Ver `references/to-tickets-validation.md`.
 
 ## Verification
 - `hermes -p <profile> skills list` shows installed hub skills (builtin filtered with `grep -v builtin`)

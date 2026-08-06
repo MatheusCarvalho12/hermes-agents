@@ -21,6 +21,12 @@ protocol violation: só commitou o pedaço pequeno, deixou 19 arquivos (+1000 li
 tree não commitado e não chamou kanban_complete (blocked após 4 runs). Recuperação: orquestrador
 valida build/testes/tsc + critérios de aceite da spec, commita o trabalho órfão em nome do worker,
 kanban comment + complete. → "entrega boa" NÃO é "protocolo fechado"; exigir fechamento explícito.
+CAUSA RAIZ descoberta depois (ver kanban-orchestration → protocol_violation → Diagnóstico): 4x rc=0
+sem complete NÃO era desobediência — era a API do modelo caindo (HTTP 503 + ReadTimeout 600s +
+Connection error) quando o contexto inchou a ~57k tokens num run de 22min. O run morria ANTES do
+kanban_complete. Lição dupla: (1) checar o tail do log por erros de API antes de culpar o worker;
+(2) tasks GRANDES demais para uma janela de contexto fresca são a causa estrutural — quebrar em
+tickets verticais pequenos (skill to-tickets) fecha o protocolo de forma confiável.
 
 ```markdown
 # Identity

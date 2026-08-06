@@ -1,6 +1,6 @@
 # My Hermes Agents — Minha Harness Multi-Agente
 
-![License](https://img.shields.io/badge/license-MIT-blue) ![Release](https://img.shields.io/github/v/release/MatheusCarvalho12/my-hermes-agents) ![Agentes](https://img.shields.io/badge/agentes-5-orange) ![Skills](https://img.shields.io/badge/skills-59-green)
+![License](https://img.shields.io/badge/license-MIT-blue) ![Release](https://img.shields.io/github/v/release/MatheusCarvalho12/my-hermes-agents) ![Agentes](https://img.shields.io/badge/agentes-5-orange) ![Skills](https://img.shields.io/badge/skills-79-green)
 
 > **Minha harness pessoal** construída com [Hermes Agent](https://hermes-agent.nousresearch.com) (Nous Research) — o time de agentes que eu sempre quis: cada perfil com papel, skills e memória próprios, orquestrados por mim. Restaurável em qualquer máquina com um comando.
 >
@@ -10,13 +10,13 @@
 
 | Agente | Papel | Skills ativas |
 |---|---|---|
-| ![orchestrator](https://img.shields.io/badge/-orchestrator-326CE5?logo=kubernetes&logoColor=white) | Orquestrador — gerencia o time via Kanban, decide quem faz o quê, delega e administra o Hermes. | 12 |
+| ![orchestrator](https://img.shields.io/badge/-orchestrator-326CE5?logo=kubernetes&logoColor=white) | Orquestrador — gerencia o time via Kanban, decide quem faz o quê, delega e administra o Hermes. | 29 |
 | ![frontend-developer](https://img.shields.io/badge/-frontend--developer-61DAFB?logo=react&logoColor=white) | Frontend — React, shadcn/ui, performance/Lighthouse, a11y e UI pt-BR humanizada. | 23 |
-| ![backend-developer](https://img.shields.io/badge/-backend--developer-009688?logo=fastapi&logoColor=white) | Backend — FastAPI, SQLAlchemy/Alembic, pytest, APIs REST e segurança. | 14 |
-| ![database-developer](https://img.shields.io/badge/-database--developer-4169E1?logo=postgresql&logoColor=white) | Database — Postgres, SQL, modelagem, migrações e otimização. | 4 |
-| ![designer](https://img.shields.io/badge/-designer-F24E1E?logo=figma&logoColor=white) | Designer — design system, branding, tokens, Figma e direção visual. | 6 |
+| ![backend-developer](https://img.shields.io/badge/-backend--developer-009688?logo=fastapi&logoColor=white) | Backend — FastAPI, SQLAlchemy/Alembic, pytest, APIs REST e segurança. | 15 |
+| ![database-developer](https://img.shields.io/badge/-database--developer-4169E1?logo=postgresql&logoColor=white) | Database — Postgres, SQL, modelagem, migrações e otimização. | 5 |
+| ![designer](https://img.shields.io/badge/-designer-F24E1E?logo=figma&logoColor=white) | Designer — design system, branding, tokens, Figma e direção visual. | 7 |
 
-*Última atualização: 05/08/2026 — 5 agentes, 59 skills ativas no total.*
+*Última atualização: 05/08/2026 — 5 agentes, 79 skills ativas no total.*
 
 ## 💾 Restaurar em outra máquina
 
@@ -49,7 +49,7 @@ hermes profile update orchestrator frontend-developer backend-developer database
 
 ### ![orchestrator](https://img.shields.io/badge/-orchestrator-326CE5?logo=kubernetes&logoColor=white)
 
-`agent-browser` | `github-readme-badges` | `grill-me` | `grilling` | `hermes-administration` | `hermes-multi-profile-ops` | `hermes-profile-distributions` | `hermes-profile-engineering` | `hermes-profile-fleets` | `i-have-adhd` | `kanban-orchestration` | `planning-and-task-breakdown`
+`agent-browser` | `code-review` | `codebase-design` | `diagnosing-bugs` | `domain-modeling` | `github-readme-badges` | `grill-me` | `grill-with-docs` | `grilling` | `handoff` | `hermes-administration` | `hermes-multi-profile-iteration` | `hermes-multi-profile-ops` | `hermes-profile-distributions` | `hermes-profile-engineering` | `hermes-profile-fleets` | `i-have-adhd` | `improve-codebase-architecture` | `kanban-orchestration` | `planning-and-task-breakdown` | `prototype` | `tdd` | `teach` | `to-questionnaire` | `to-spec` | `to-tickets` | `triage` | `wait-what` | `wayfinder`
 
 ### ![frontend-developer](https://img.shields.io/badge/-frontend--developer-61DAFB?logo=react&logoColor=white)
 
@@ -57,15 +57,15 @@ hermes profile update orchestrator frontend-developer backend-developer database
 
 ### ![backend-developer](https://img.shields.io/badge/-backend--developer-009688?logo=fastapi&logoColor=white)
 
-`api-design-principles` | `api-testing` | `code-review` | `fastapi` | `http-api` | `i-have-adhd` | `pytest` | `ruff` | `security-review` | `sentry-fix-issues` | `sentry-python-sdk` | `sentry-sdk-setup` | `sqlalchemy-alembic-expert-best-practices-code-review` | `test-review`
+`api-design-principles` | `api-testing` | `code-review` | `fastapi` | `http-api` | `humanizer` | `i-have-adhd` | `pytest` | `ruff` | `security-review` | `sentry-fix-issues` | `sentry-python-sdk` | `sentry-sdk-setup` | `sqlalchemy-alembic-expert-best-practices-code-review` | `test-review`
 
 ### ![database-developer](https://img.shields.io/badge/-database--developer-4169E1?logo=postgresql&logoColor=white)
 
-`bigquery-basics` | `i-have-adhd` | `postgres-best-practices` | `sql`
+`bigquery-basics` | `humanizer` | `i-have-adhd` | `postgres-best-practices` | `sql`
 
 ### ![designer](https://img.shields.io/badge/-designer-F24E1E?logo=figma&logoColor=white)
 
-`Design System` | `design-principles` | `design-tokens` | `figma` | `i-have-adhd` | `typography`
+`Design System` | `design-principles` | `design-tokens` | `figma` | `humanizer` | `i-have-adhd` | `typography`
 
 ## 🙏 Thanks
 

@@ -38,6 +38,7 @@ Fluxo operacional do ORQUESTRADOR sobre o kanban do Hermes, validado em entrega 
 
 ## Escopo vazado = o time-killer #1 de worker (2026-08-05, task StatusBadge)
 Worker de frontend gastou 22 min numa task de 1 componente e reescreveu 20 arquivos fora do escopo (1180 linhas não commitadas: App/Header/StateViews/index.css...). Commit dele era limpo, mas o working tree virou um refactor inteiro que ninguém pediu.
+- **Task de PROVA deve ser do TAMANHO REAL da demanda do usuário** (correção explícita 2026-08-05): ele rejeitou micro-task de teste ("StatusBadge porra, minhas tasks não vão ser uma coisa pequena assim"). Teste pequeno valida gatilho/processo; teste GRANDE (ex: refatorar o dashboard inteiro mantendo lógica de negócio, com spec do designer como contrato) valida escopo/autonomia/entrega. MAS: task gigante monolítica em UM ticket = contexto incha = API cai = protocol violation (ver seção protocol_violation) — a solução é quebrar a demanda grande em tickets verticais (to-tickets), não evitar tarefa grande.
 - **Prevenção no body da task**: seção explícita "Escopo autorizado: <paths>" + "PROIBIDO tocar: <paths>" + "Se precisar de algo fora, pare e pergunte via kanban". Tasks GRANDES autorizam a área inteira (ex: "frontend/ inteiro") mas proíbem as outras (backend/, tests/).
 - **Detecção pós-run**: `git status --short` + `git diff --stat HEAD` — se aparecer diff fora do que a task autorizou, é escopo vazado (devolver / reverter / reaproveitar com critério).
 - **Time-box**: worker deve ler ≤ 30 min antes de codar em task grande; ≤ 10 min em task pequena.
@@ -49,6 +50,14 @@ Recovery (do orquestrador):
 1. Verificar a ENTREGA REAL (log do worker mostra sucesso? build/testes rodam? arquivos existem?).
 2. `hermes kanban comment` explicando a revisão + `hermes kanban complete <id>`.
 3. Prevenção: encerrar o body com "CHAME kanban_complete OBRIGATORIAMENTE ao terminar (senao o dispatcher conta como crash)".
+
+### Diagnóstico: checar a API do modelo ANTES de culpar o worker (validado 2026-08-05, task t_b6e8e378)
+O worker "não fecha o protocolo" NEM SEMPRE é desobediência — pode ser o run morrendo ANTES de chegar ao kanban_complete. Antes de concluir protocol_violation, ler o FINAL do log: `hermes kanban log <id> 2>&1 | tail -60 | grep -vE heartbeat` e procurar:
+- `API call failed ... HTTP 503` (capacity limits), `stream drop (ReadTimeout) after 600s`, `Final error: Connection error`.
+Caso real: task GRANDE crashou 4x com rc=0 — o worker tinha plano explícito de "commitar e fechar", mas a API do modelo caiu (503 + timeout 10min + connection) quando o contexto inchou a ~57k tokens / 40 msgs num run de 22min. Não era o worker nem o SOUL — era infra do modelo.
+- Correção estrutural: **sizear a task para caber numa janela de contexto fresca** — tasks verticais pequenas (skill `to-tickets` do mattpocock: tracer-bullet slices com bloqueios) fecham o protocolo de forma confiável; task monolítica gigante + modelo instável = morte certa.
+- **VALIDADO na cadeia T1→T2→T3 (2026-08-05)**: quebrar a demanda grande em 3 tickets verticais com `--parent` encadeado fez cada um fechar `done` em ~3 min, protocolo ok, sem recovery manual. O dispatcher promove os filhos sozinhos quando o pai done — **monitore a cadeia INTEIRA de uma vez** (`watch-kanban-tasks.sh t_1 t_2 t_3` aceita lista), não um ticket por vez; o script notifica quando todos terminarem.
+- O worker herda o modelo do clone (`model.default` no config do perfil) — se o default do time está 503/timeout, todo worker cai junto; considerar trocar o modelo dos perfis ou quebrar em tickets menores.
 
 ### Variante: trabalho grande NÃO commitado (2ª ocorrência consecutiva — 2026-08-05, task dashboard GRANDE)
 Worker entrega a refatoração INTEIRA mas: (a) só commitou o pedaço pequeno (ex: componente) e deixou 19-29 arquivos (+1000 linhas) como diff não commitado no working tree; (b) não chamou `kanban_complete` → blocked após 4 runs. O summary pode nem existir — NÃO confiar nele; a prova é o diff + build/testes.
