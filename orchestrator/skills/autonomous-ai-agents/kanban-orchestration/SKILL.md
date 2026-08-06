@@ -52,10 +52,15 @@ Ao iniciar módulo novo, o usuário pode pedir "revisa a base primeiro e traz ve
 
 ## protocol_violation (padrão recorrente em sessões longas)
 Worker termina rc=0 SEM chamar kanban_complete/kanban_block → dispatcher marca gave_up/blocked apos 2-3 crashes; o erro instrui: "verify it and report the result via kanban_complete".
+
+**FIX NATIVO NO UPSTREAM (Hermes v0.20.0+):** o auto-complete em finalização normal (#27199, `_kanban_stop_synthetic` no run_agent.py) faz o worker que termina com texto receber nudge sintético em vez de protocol_violation; o erro genérico ganhou fix que mostra o erro real (#46985). Protocol_violation em versão nova = run morto por API (503/ReadTimeout com contexto inchado) na maioria dos casos — seguir a seção Diagnóstico abaixo: ler o FINAL do log antes de concluir qualquer coisa.
+
 Recovery (do orquestrador):
 1. Verificar a ENTREGA REAL (log do worker mostra sucesso? build/testes rodam? arquivos existem?).
 2. `hermes kanban comment` explicando a revisão + `hermes kanban complete <id>`.
 3. Prevenção: encerrar o body com "CHAME kanban_complete OBRIGATORIAMENTE ao terminar (senao o dispatcher conta como crash)".
+
+**NOTIFICAÇÃO EM TEMPO REAL (nativa, doc oficial):** `hermes kanban notify-subscribe <id> --platform <p> --chat-id <n>` — o notifier do gateway (ativo com `hermes gateway status`) entrega 1 mensagem por evento terminal (completed/blocked/gave_up/crashed/timed_out) + 1ª linha do `--result`; `/kanban create` no gateway assina automaticamente. Desktop sem gateway-chat: `scripts/watch-kanban-tasks.sh` em background + `notify_on_complete=true` — o script reconhece done/blocked/gave_up/crashed/archived como terminais.
 
 ### Diagnóstico: checar a API do modelo ANTES de culpar o worker (validado 2026-08-05, task t_b6e8e378)
 O worker "não fecha o protocolo" NEM SEMPRE é desobediência — pode ser o run morrendo ANTES de chegar ao kanban_complete. Antes de concluir protocol_violation, ler o FINAL do log: `hermes kanban log <id> 2>&1 | tail -60 | grep -vE heartbeat` e procurar:
@@ -99,6 +104,17 @@ Cadeia de 5 tasks verticais (adaptador → schema → endpoints+jobs → spec �
 - **`cmd | tail` mascara exit code**: pytest com 25 collection errors retornou exit 0 no pipe. Ler o output (`N passed, N failed, N errors`) — nunca confiar no exit code quando há pipe.
 - **Erro de lint pré-existente ≠ entrega ruim**: ruff apontou 1 erro em arquivo de OUTRO worktrip (`tests/processos/test_refresh.py`); `git diff origin/main..HEAD -- <arquivo>` vazio prova que não é da entrega. Rodar ruff SÓ na entrega (ex.: `src/flowmex_core/integrations ...`) antes de devolver task.
 - **Endpoint existe em módulo mas 404 no app real**: worker entregou router opcional + jobs mas NÃO fez o wiring no composition root (`main.py` chamava `create_app` sem o parâmetro novo); a task pedia "endpoints respondendo" e só testes com fakes passaram. Módulo existir + testes verdes NÃO prova wiring — smoke test contra o app montado (TestClient) é o critério; gap vira task de correção com body apontando exatamente o arquivo do wiring.
+- **Doc oficial ≠ shape real da API (2026-08-06, Mainô)**: adaptador escrito conforme a doc (`{value: {cnpj: ...}}`) mas a API real responde o envelope SEM `value` (`{cnpj: {...}}` direto) → `auth_failed` com credenciais que funcionavam num curl direto (HTTP 200). Testes com MockTransport baseado na doc não pegam. Regra para integração externa: ANTES de declarar pronto, teste de fogo de AUTENTICAÇÃO real — script com credenciais reais via `op read` (sem imprimir valores; validar só status + shape do JSON com keys mascaradas) e comparar o shape real com o parse do adaptador. Diferença de envelope vira task de correção com a evidência no body.
+- **Envelope varia POR MÓDULO, não só na auth (2026-08-06, validação real do dump)**: o job real completou `done` com `modules_done` reportando `count=0` para stakeholders/produtos/nfes — mas um GET direto com o MESMO token retornava 24KB–40KB de dados (chaves reais: `/stakeholders`→`stakeholders`, `/produtos`→`produtos`, `/nfes`→`notas_fiscais`). O adaptador normalizava alguns envelopes e devolvia página vazia para outros, silenciosamente. Regra: depois do dump real, **conferir count > 0 em TODOS os módulos esperados** e, para qualquer zero suspeito, script de verificação direto na API (status HTTP + tamanho + chaves, sem imprimir tokens) — o checkpoint `modules_done` do job é a fonte da verdade do parse, não o "done".
+- **Commit prematuro com teste de banco falhando (2026-08-06, erro do orquestrador)**: ao validar o fix do wiring, o smoke tinha 2 fails `UndefinedTableError: relation "integrations.integration_jobs" does not exist` e EU COMMITEI A ENTREGA ANTES de rodar com o banco certo. O fail era ambiente (banco default sem a migration nova), não código — mas a regra vale: **NUNCA commitar entrega com teste vermelho pendente**; fail de `relation ... does not exist`/`UndefinedTableError` em testes de ORM = banco sem migration (rodar com `FLOWMEX_DATABASE_URL` do banco migrado e ver green) — a prova de que era ambiente é a suíte verde no banco certo, não a leitura do erro.
+
+## Merge de branches paralelas que mexem no MESMO wiring (2026-08-06, feat/documentos → feat/integrations-maino)
+Usuário pediu mergear a branch do outro worktrip na minha para o dump puxar documentos. 4 arquivos de wiring conflitaram (env.py, app.py, config.py, main.py) porque AMBAS as branches os editaram — o merge automático resolve o resto (27 arquivos), os 4 wiring ficam `UU`:
+- **Resolver mantendo AMBOS os lados**: imports + target_metadata (env.py), settings novos (config.py), montagem de routers (app.py), composition root (main.py). Nada de escolher um lado — as duas features coexistem.
+- **Parâmetro novo obrigatório quebra testes da outra branch**: o `create_app` da branch documentos exigia `documentos` obrigatório → 11 testes da branch integrações caíram (`TypeError: create_app() missing 1 required keyword-only argument`). Fix de compatibilidade: parâmetros de wiring NOVOS nascem OPCIONAIS (`| None = None` + `if x is not None: include_router`), seguindo o padrão que o próprio `integrations` já usava.
+- **`uv sync` é obrigatório pós-merge**: a branch merged adicionou deps (ex.: boto3) → `ModuleNotFoundError` nos testes novos até sincronizar o venv.
+- **Suíte COMPLETA pós-merge, não só as duas áreas**: 257 passed é a prova do merge; testes focados por área podem passar com o wiring quebrado entre elas.
+- `create_app` com `*` + keyword-only: chamada correta é `create_app(register, discovery, store, documentos=..., integrations=...)` — Pyright acusa `Expected 3 positional arguments` se passar positional.
 
 ## Padrão de finalização do usuário (instrução explícita 2026-08-05)
 Ao terminar QUALQUER task/verificação, o fluxo de fechamento é:
@@ -106,6 +122,13 @@ Ao terminar QUALQUER task/verificação, o fluxo de fechamento é:
 2. **NÃO fazer PR/merge sem aval explícito** — o usuário diz "pode fazer" (ou "faz PR, merge"). Se ele disser "não faz o merge/PR", NÃO faz.
 3. Após o aval e o merge: **limpar TUDO** — branch local (`git branch -D`), branch remota (o `--delete-branch` do `gh pr merge` + `git fetch --prune`), main sincronizado (`git reset --hard origin/main` após squash). Zero sujeira.
 - Regra gravada na memória também; aqui fica o PORQUÊ: o usuário aprova visualmente antes de versionar — o PR sem aval dele é visto como atropelo.
+
+## Regra de memória do usuário (correção explícita e repetida — 2026-08-06)
+Usuário cobrou em tom forte: "para de subir memória pro MEMORY.md se for coisa de projeto... já falei mil vezes... é pro mem0". Regra inegociável:
+- **MEMORY.md local = SÓ aprendizado GERAL + extremamente curto** (ex.: `$(...)` bloqueado no terminal, `env -u PYTHONPATH`). Nada de projeto, nada de env vars de banco, nada de pitfall de lib específica do projeto.
+- **TUDO de projeto/agente vai pro MEM0** (`mem0_add`), separado por projeto — env var poluída, worker PgQueuer, schemas, credenciais, decisões.
+- Teste mental antes de gravar: "isso vale para QUALQUER projeto?" — se a resposta é não, é mem0, não MEMORY.md.
+- Ao corrigir (remover do MEMORY.md + migrar pro mem0), fazer em UMA leva: `memory` com operations batch (remove+add juntos, o limite é do resultado final) + `mem0_add` dos fatos.
 
 ## Gargalo de velocidade: verificação pesada em task pequena (diagnóstico 2026-08-05)
 Medição real dos runs: task de endpoint simples = 2.3 min; task de padding (4 linhas de CSS) = 20 min — o excesso era a BATERIA COMPLETA de verificação (lighthouse 2x + e2e 5/5 + react-doctor + screenshots antes/depois) rodada em CADA task pequena. Custo fixo por task: carregar SOUL + explorar repo + sessão nova (~1-3 min que uma sessão full-stack contínua não paga).

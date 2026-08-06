@@ -48,6 +48,7 @@ Regras do portal:
 - Teste rápido: `curl -x http://user:pass@proxy.geonode.io:9000 http://ip-api.com/json` → `countryCode: BR` (residencial de verdade, ex. Terra Roxa/PR)
 - Config flowmex: `FLOWMEX_SISCARGA_NOPECHA_PROXY={"scheme":"http","host":"proxy.geonode.io","port":9000,"username":"...","password":"..."}` (pydantic-settings parseia JSON)
 - Proxy residencial BR faz o hCaptcha servir desafios fáceis → solve em segundos em vez de 10-30 min
+- **No Chrome/CDP, credenciais inline NÃO funcionam** (`ERR_NO_SUPPORTED_PROXIES`) — usar forward proxy local sem auth (`gost -L :8888 -F "http://user:pass@proxy.geonode.io:9000"` + `--proxy-server=http://127.0.0.1:8888`). Rotação de IP residencial = burlar o rate-limit do hCaptcha (detalhes em `references/siscarga-cdp-captcha.md`)
 
 ## 6. Browser para mTLS (exploração visual)
 

@@ -104,6 +104,25 @@ Ao validar migrations, rodar SEM filtro e olhar o tail completo. Um "upgrade bem
 
 **Resolução** (ordem): rodar `env -u PYTHONPATH .venv/bin/alembic upgrade head` e re-testar (18 pass/9 err → 27/27). Para testes novos, o fixture deve ser independente da migration: `CREATE SCHEMA IF NOT EXISTS <schema>` antes do `create_all` — assim a suíte roda em banco dropado.
 
+## Pitfall 6 — banco novo sem tabelas do PgQueuer: `pgq install` falha em silêncio
+
+**Sintoma**: worker do runtime morre no startup com `RuntimeError: The required table 'pgqueuer' is missing. Please run 'pgq install'` — mesmo depois de `alembic upgrade head` OK. O alembic cria os schemas de negócio (runtime/companies/...) mas NÃO as tabelas do PgQueuer (`public.pgqueuer`, `pgqueuer_log`, `pgqueuer_statistics`, `pgqueuer_schedules` + TYPE `pgqueuer_status`).
+
+**Causa**: o CLI `pgq install` (e `python -m pgqueuer.cli install --pg-dsn ...`) pode sair exit 0 **sem criar nada** (falha silenciosa — validado 2026-08-06, pgqueuer no venv do worktree). O `.venv/bin/pgq` pode também estar com binário quebrado ("No such file or directory" mesmo existindo) — preferir `python -m pgqueuer.cli`.
+
+**Resolução rápida** (quando um banco irmão do mesmo repo já tem as tabelas — ex: outro worktree com worker rodando):
+```bash
+CID=$(docker ps -q -f publish=5432 | head -1)
+docker exec $CID sh -c "pg_dump -U flowmex -d <banco_irmao> -n public --schema-only" \
+  | grep -v '^\\restrict' \
+  | docker exec -i $CID psql -U flowmex -d <banco_novo>
+```
+- `-n public` pega só o schema public (no flowmex só há as tabelas pgqueuer lá); erros de "schema already exists"/"sequence already exists" são benignos.
+- **`grep -v '^\restrict'` é OBRIGATÓRIO**: pg_dump 17+ emite `\restrict <token>` no início do dump; sem remover, o psql falha com "relation does not exist" nas dependências.
+- `pg_dump -t 'public.pgqueuer*' --schema-only` NÃO basta — o TYPE `pgqueuer_status` fica de fora e o restore quebra.
+
+**Verificação**: `SELECT tablename FROM pg_tables WHERE schemaname='public'` deve listar as 4 tabelas; o worker sobe com seu log de início.
+
 ## Regras gerais
 - **NUNCA dropar schema/tabela antes de conferir contagens** — banco local de dev vazio é resetável; banco com dados não.
 - `alembic stamp` para "mentir" o estado só quando o schema atual bate com a revisão alvo — caso contrário, drop + upgrade limpo.

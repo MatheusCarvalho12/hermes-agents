@@ -13,6 +13,12 @@ outras sessões. Contexto real: módulo de documentos do flowmex-core (`runtime/
   para sempre, drain retorna em 0.1s vazio, e o dequeue DIRETO acha o job.
 - Worker correto: `run(mode=continuous)` UMA vez (loop infinito do pgqueuer) + relay do
   outbox (`relay_once()` a cada ~1s) em task separada via `asyncio.gather`.
+- **Nuance do drain (validado 2026-08-06)**: num script de verificação já escrito com
+  drain em loop, a 1ª chamada do drain processa os jobs QUE JÁ ESTAVAM NA FILA — útil
+  para escoar pendentes acumulados (ex.: worker ficou morto durante um reboot do banco),
+  mas jobs que chegarem DEPOIS ficam parados para sempre. Se o job foi enfileirado antes
+  de o worker subir e o status segue `queued` com worker vivo, o drain simples (uma
+  chamada) resolve o pendente; jobs novos exigem o padrão continuous + relay separado.
 
 ## Setup de banco isolado (zero risco para outras sessões)
 ```bash
@@ -64,10 +70,27 @@ Rodar com `env -u PYTHONPATH .venv/bin/python` (PYTHONPATH do hermes contamina p
 | Sintoma | Causa |
 |---|---|
 | outbox `pending` > 0 | relay não roda (sem worker ou loop errado) |
-| outbox `published` + job `queued` + worker vivo | drain em loop (shutdown setado) — trocar para continuous |
+| outbox `published` + job `queued` + worker vivo | drain em loop (shutdown setado) — trocar para continuous; OU **conexão morta do worker**: Postgres/Docker foi recriado depois que o worker subiu (sintoma idêntico, sem erro no log) — reiniciar o worker resolve; conferir `docker ps`/uptime do banco antes de culpar o loop |
 | operation existe sem outbox | `accept_import` não commitou (atômico: operation+outbox juntos) — olhar o adapter |
 | app 404 em linha que existe no banco | env var aponta para outro banco (`printenv FLOWMEX_DATABASE_URL`) |
 | job `queued` com `execute_after` no passado e dequeue manual acha | worker loop morto; drain manual direto (`qm.queries.dequeue`) isola worker vs query |
+
+## Fallback: `pgq install` falha silencioso (validado 2026-08-06)
+`pgq install` pode não criar NADA sem erro aparente: binário do venv com shebang quebrado
+(`env: .venv/bin/pgq: No such file or directory` — mesmo sintoma do `alembic`), ou
+`python -m pgqueuer.cli install --pg-dsn ...` saindo exit 0 sem tabelas. Verificação
+rápida: `SELECT tablename FROM pg_tables WHERE schemaname='public'` (esperado:
+`pgqueuer`, `pgqueuer_log`, `pgqueuer_statistics`, `pgqueuer_schedules` + TYPE
+`pgqueuer_status`). Fallback validado — copiar o DDL de um banco irmão que já tem
+as tabelas (mesmo container, ex.: flowmex_docs):
+```bash
+docker exec <cid> sh -c "pg_dump -U flowmex -d flowmex_docs -n public --schema-only" \
+  | grep -v '^\\restrict' \
+  | docker exec -i <cid> psql -U flowmex -d flowmex_maino_research
+```
+`-n public` pega o TYPE (`pgqueuer_status`) que `-t 'pgqueuer*'` NÃO pega (dá
+`relation "public.pgqueuer" does not exist` ao restaurar). Erros benignos esperados:
+`schema "public" already exists` e sequences duplicadas — conferir a listagem final.
 
 ## Achado para produção (virou task)
 O composition root expõe os handlers mas NÃO tem o runner de worker contínuo — sem ele,

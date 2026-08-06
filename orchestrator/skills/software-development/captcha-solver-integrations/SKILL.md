@@ -25,6 +25,18 @@ qualquer portal com hCaptcha Enterprise.
 - SEMPRE validar o IP do proxy ANTES de gastar crédito de solve: consulta
   `ip-api.com/json` via proxy (curl -x ou requests[proxies]) — confirmar país +
   ISP residencial.
+- **No Chrome/CDP, credenciais inline no `--proxy-server` NÃO funcionam**
+  (`ERR_NO_SUPPORTED_PROXIES` — removido do Chrome há anos; sem dialog em
+  headless). Solução: forward proxy local sem auth com `gost`
+  (github.com/ginuerzh/gost, binário único):
+  `/tmp/gost -L :8888 -F "http://user:pass@host:9000"` + Chrome com
+  `--proxy-server=http://127.0.0.1:8888`. mTLS via NSS funciona ATRAVÉS do
+  CONNECT (validado no Siscarga).
+- **Rate-limit do hCaptcha é por IP: rotação de IP residencial (proxy rotativo)
+  = burlar o soft-ban de ~10-12 tentativas.** Cada tentativa sai por IP novo e
+  o hCaptcha não acumula. Também: o fetch do Node NÃO passa pelo proxy — para
+  baixar imagens do challenge quando o IP local está bloqueado, usar
+  `curl -s -x <proxy-local> <url>`.
 
 ## NopeCHA (API v1/token/hcaptcha)
 - POST job `{key, sitekey, url, useragent, cookie[], rqdata?, proxy?}` → `{data: job_id}`;

@@ -44,7 +44,17 @@ contas reais e entregar um relatório com fonte citada no repo do projeto.
      residencial) — não insista no browser remoto.
    - Navegue o app logado para ver módulos, créditos/planos e a tela de
      configurações de integração (onde o cliente gera chaves).
-6. **Entregue**: relatório Markdown com fonte citada em `docs/` do repo, numa
+6. **Valide o SHAPE real da resposta ANTES de codar o parse** (validado
+   2026-08-06, Mainô): a doc oficial pode divergir da API real — caso real:
+   doc mostra `{value: {cnpj: {...}}}` e a API responde `{cnpj: {...}}` sem o
+   wrapper; envelopes variam POR MÓDULO (`/stakeholders`→`stakeholders`,
+   `/produtos`→`produtos`, `/nfes`→`notas_fiscais`). Método: script com
+   credenciais reais via `op read` (nunca imprimir tokens — só status HTTP,
+   tamanho e KEYS do JSON) que autentica e lista 1 página de cada módulo; se
+   o dump reportar `count=0` num módulo que o script direto mostra com dados
+   (24KB+), é parse errado, não "sem dados". Fluxo de verificação completo em
+   `kanban-orchestration` (seção worktrip de integração externa).
+7. **Entregue**: relatório Markdown com fonte citada em `docs/` do repo, numa
    branch própria. Se outro agente está trabalhando no mesmo repo, use
    **`git worktree add <caminho> -b <branch> origin/main`** (diretório
    separado) — nunca branch na working copy compartilhada; commite só os

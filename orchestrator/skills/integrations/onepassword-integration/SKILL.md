@@ -40,6 +40,9 @@ API keys, credenciais de fornecedores, tokens). O Hermes tem integração NATIVA
    token mudou (cut vs regex) — o sintoma é o mesmo erro do pitfall 1.
 6. Sem app 1Password instalado no Mac: não existe sessão desktop — o
    service account token é o ÚNICO caminho (sem token: `no account found`).
+7. **Nunca usar `UID` como nome de variável em script bash** — é readonly
+   (uid do usuário); `UID=...` falha silencioso e a ref sai com valor errado
+   (ex.: application_uid="501" → 401 na API). Usar `MAINO_UID`/`APP_UID`.
 
 ## Verificação segura de refs (mascarada)
 
