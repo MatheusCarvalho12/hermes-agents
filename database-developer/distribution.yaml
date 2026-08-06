@@ -1,5 +1,5 @@
 name: database-developer
-version: 1.0.24
+version: 1.0.25
 description: 'Database developer: Postgres, SQL, modelagem, migrações e otimização
   de queries.'
 author: Matheus Carvalho

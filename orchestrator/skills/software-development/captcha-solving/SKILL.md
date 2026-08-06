@@ -33,3 +33,31 @@ Padrões validados em integração real com o portal Siscarga da Receita Federal
 
 ## Pitfall de ambiente
 - Testes "live" (real API) ficam skipped sem `RUN_REAL_API=1` + credenciais — o E2E real com solver pode levar 10-30+ min por query; rodar em background com notificação, nunca em foreground bloqueante.
+
+## TOKEN REJEITADO SILENCIOSAMENTE (lição mais cara da sessão — 2026-08-06, Siscarga)
+NopeCHA gerou tokens `P1_...` válidos (API aceitou, solve completou) mas o portal
+**rejeitou 8/8** — e o Siscarga re-renderiza o form SEM mensagem de erro
+(preserva as datas às vezes, zera tudo às vezes). O captcha MANUAL no browser
+passou. Conclusões:
+- **"Token gerado" NÃO é sucesso**: o único teste que vale é o submit real e
+  conferir se veio a página de RESULTADOS (não o form de novo).
+- Testado e rejeitado: endpoint `/v1/token/hcaptcha` (adapter), `/token/` +
+  `type`+`enterprise:false` (biblioteca), `cookie` com sessão real do portal,
+  proxy BR residencial, `data.rqdata` (o widget do Siscarga é CLASSIC — sem
+  rqdata na página), e a EXTENSÃO NopeCHA no browser real. A única via que
+  passou hoje: clique humano no widget. Próximo passo recomendado se o cliente
+  insistir em automático: CapSolver/2captcha (workers humanos).
+- Sites com detecção de solver existem; taxa pode variar por dia/horário —
+  documentar a taxa por sessão em vez de concluir "nunca funciona".
+
+## Extensão NopeCHA + biblioteca + CDP (detalhes em references/nopecha-lib-extensao-cdp.md)
+- **Extensão NopeCHA resolve no browser real (~15s) mas NÃO dispara o
+  `onSuccess` da página**: preenche o `textarea[name="h-captcha-response"]`,
+  o hidden `response` fica VAZIO → submit rejeitado. Antes de submeter, copiar
+  o token: `document.getElementById('response').value = textarea.value` (CDP).
+- **Biblioteca `nopecha` 2.0.1**: cliente ASYNC tem bug (URL relativa sem host
+  → "Request URL is missing an 'http://' or 'https://' protocol"). Usar o
+  SYNC (`HTTPXAPIClient`) via `anyio.to_thread.run_sync`.
+- **Chrome + extensão = caminho VPS**: `--remote-debugging-port=9222
+  --load-extension=<ext>` + `agent-browser --cdp 9222` + WebSocket CDP (node).
+  mTLS: Mac usa Keychain (headed ok; headless trava); Linux VPS = NSS DB.

@@ -91,6 +91,15 @@ Regra "Context7 é LEI antes de usar API/lib" nos SOULs dos workers NÃO garante
 - **Workers deixam arquivos temporários** (`verify-*.tmp.ts`, `*_tmp.py`, `capture-*.ts`, `_test_*.txt`) no working tree — limpar antes do commit (`git rm --cached` + rm + adicionar `*.tmp.ts` ao .gitignore) ou o PR sai poluído.
 - **Fix de worker pode estar ESTRUTURALMENTE errado de forma silenciosa** (2026-08-06, task t_887c8011): o worker "corrigiu" o env.py com `CREATE SCHEMA IF NOT EXISTS runtime` antes do run_migrations — o alembic passou a imprimir "Running upgrade" x5 + exit 0 mas o banco ficava VAZIO (rollback silencioso: o execute abria transação implícita, o alembic não commitava, o close revertia tudo). `pytest` nem ajudava (17 errors de setup pareciam problema de ambiente). Só o critério de pronto REAL da task pegou: drop dos schemas → upgrade head → conferir persistência (schemas + version table) → suíte. Regra: validar entrega do worker com o critério de pronto escrito no body (drop+rebuild+checagem de estado), não com "diff existe + parece correto + testes rodam" — caso completo em `database-migrations`.
 
+## Verificação pós-done em worktrip de integração externa (2026-08-06, Mainô → Flowmax)
+Cadeia de 5 tasks verticais (adaptador → schema → endpoints+jobs → spec → front) fechou toda `done`; a verificação real pegou 1 gap de entrega e 3 armadilhas de ambiente:
+
+- **Worktree novo NÃO tem o pacote instalado**: `git worktree add` não clona o `.venv` — pytest falha com `ModuleNotFoundError: No module named '<pacote>'` em TODOS os testes (parece código quebrado, é ambiente). Antes da suíte: `env -u PYTHONPATH <uv> pip install -e . --no-deps` (ou `uv sync`) no worktree; binários podem ter shebang quebrado → usar `python -m alembic` em vez de `.venv/bin/alembic`.
+- **Banco Postgres é COMPARTILHADO entre worktrees**: outro worktrip migrou o banco local com revisions que esta branch não tem → `alembic upgrade head` falha com `Can't locate revision identified by '...'`. Validar a migration nova em banco limpo: `CREATE DATABASE <nome>` + `FLOWMEX_DATABASE_URL=... alembic upgrade head` + testes de ORM com essa URL (bate com o critério de pronto da task de schema: "upgrade roda limpo em banco vazio").
+- **`cmd | tail` mascara exit code**: pytest com 25 collection errors retornou exit 0 no pipe. Ler o output (`N passed, N failed, N errors`) — nunca confiar no exit code quando há pipe.
+- **Erro de lint pré-existente ≠ entrega ruim**: ruff apontou 1 erro em arquivo de OUTRO worktrip (`tests/processos/test_refresh.py`); `git diff origin/main..HEAD -- <arquivo>` vazio prova que não é da entrega. Rodar ruff SÓ na entrega (ex.: `src/flowmex_core/integrations ...`) antes de devolver task.
+- **Endpoint existe em módulo mas 404 no app real**: worker entregou router opcional + jobs mas NÃO fez o wiring no composition root (`main.py` chamava `create_app` sem o parâmetro novo); a task pedia "endpoints respondendo" e só testes com fakes passaram. Módulo existir + testes verdes NÃO prova wiring — smoke test contra o app montado (TestClient) é o critério; gap vira task de correção com body apontando exatamente o arquivo do wiring.
+
 ## Padrão de finalização do usuário (instrução explícita 2026-08-05)
 Ao terminar QUALQUER task/verificação, o fluxo de fechamento é:
 1. **SUBIR A STACK para o usuário VER o resultado real** (front + back: uvicorn em :8000 com `env -u PYTHONPATH .../uv run uvicorn`, vite em :5173; abrir `open_preview` no front). Ele quer ver o que os workers entregaram, mesmo já sabendo que está certo — "sempre que terminar uma tarefa, sobe o compose pra mim ver".
@@ -107,6 +116,15 @@ Medição real dos runs: task de endpoint simples = 2.3 min; task de padding (4 
 
 Workers com "NÃO commitar" no body se auto-bloqueiam com `kind: needs_input` (review-required) quando terminam. Orquestrador: revisa artefatos (diff/arquivos), comenta aprovacao, `kanban complete` → libera tasks filhas.
 
+### Auto-block por LACUNA DE CONTRATO → autorizar via comment + unblock (validado 2026-08-06, T2 do módulo documentos)
+Worker se auto-bloqueia (needs_input) quando o que falta está em área PROIBIDA da própria task (ex.: migração de schema pronta mas `adapters/postgres.py` — órfão entre T1 e T2 — não persiste o campo novo; smoke dá 500). NÃO reabrir a task anterior nem delegar de novo: a lacuna é do CONTRATO do orquestrador. Recovery em 2 comandos:
+1. `hermes kanban comment <id> 'AUTORIZAÇÃO DO ORQUESTRADOR: pode tocar <paths> (lacuna de contrato entre T1 e T2 — responsabilidade minha, não sua). Restante do escopo permanece.'`
+2. `hermes kanban unblock <id> 'motivo'` → volta a `ready`, dispatcher pega no próximo tick (~60s).
+O worker continua a MESMA task (contexto quente, diagnóstico já feito) — custo ~minutos vs reabrir a outra task com setup novo.
+
+### Destravar paralelismo: `kanban unlink` + `promote` (validado 2026-08-06)
+Task filha criada com `--parent` nasce `todo`; se a fronteira de arquivos com o pai é limpa (ex.: migrations/orm vs adapters/config/main), dá pra adiantar: `hermes kanban unlink <parent_id> <child_id>` — o child fica `ready` SOZINHO (o próprio unlink libera; `promote` só aceita `todo`/`blocked` → `cannot promote ... task is 'ready'`). Dispatcher pega no próximo tick. Critério: SEM sobreposição de arquivos entre as tasks (mesmo worktree) — senão conflito garantido.
+
 ## Verificação pré-PR (orquestrador)
 - pytest + `ruff check . --fix`; atenção: ruff --fix altera arquivos FORA da task (ex: camadas antigas) — conferir `git diff` antes de commitar.
 - Worker pode deletar docs/specs sem querer → `git checkout -- <arquivo>`.
@@ -116,10 +134,12 @@ Workers com "NÃO commitar" no body se auto-bloqueiam com `kind: needs_input` (r
 
 ## Tasks que leem banco
 - ANTES de delegar: confirmar que o `.env`/DATABASE_URL existe no repo (senao workers improvisam conexao — podem demorar ou falhar).
+- **Env var poluída no shell persistente > .env (validado 2026-08-06, ~30 min de debug)**: `printenv FLOWMEX_DATABASE_URL` pode apontar para um banco de OUTRA sessão (ex.: flowmex_maino_research) e sobrepor o `.env` — scripts foreground e o app podem enxergar bancos DIFERENTES (processo background não herda env exportada depois do start). Sintoma clássico: app responde 404 `company_not_found` para linha que EXISTE no banco (adapter direto acha, app não). Antes de subir uvicorn/rodar smoke: conferir a env var e `unset` se apontar para o banco errado; banco dedicado de smoke (`docker exec flowmex-pg createdb -U flowmex flowmex_docs` + `export FLOWMEX_DATABASE_URL=...`) isola de outras sessões.
 - Rodar python de projeto no Mac do usuario: `env -u PYTHONPATH` (o shell herda o site-packages do venv do hermes-agent py3.11 e contamina imports).
 - Sessoes dos workers NÃO aparecem na sidebar do desktop (perfis separados, headless) — usuario acompanha via kanban list/show/log; explicar isso sem repetir.
 
 ## Scripts
 - `scripts/watch-kanban-tasks.sh` — espera uma lista de tasks ficarem done/blocked e notifica; rodar com `terminal(background=true, notify_on_complete=true)` e continuar o trabalho (0 polling).
+- `references/verificacao-import-async.md` — como o orquestrador VERIFICA endpoint de import assíncrono (outbox → PgQueuer) de ponta a ponta: setup de banco isolado, `pgq install`, mini-worker contínuo (NUNCA `run(drain)` em loop) e diagnóstico dos sintomas (job `queued` para sempre com worker vivo, outbox `pending`, operation sem outbox).
 - **O script imprime o BOARD INTEIRO no final** ("TODAS AS TASKS TERMINARAM: ..."), não só as monitoradas — ao ler o output, grep pela task alvo (`grep t_1fde025e`) em vez de se assustar com tasks antigas done na lista (observado 2026-08-05).
 - **Verificação pós-done com `kanban show <id>`**: o campo "Latest summary" do `hermes kanban show` traz o auto-reporte do worker (incluindo lista de skills carregadas, se o body pediu). Para validar SOUL/processo: conferir summary + re-rodar testes/build (`npm test -- --run`, `npx tsc --noEmit`, `npm run build`) — self-report nunca é prova.
