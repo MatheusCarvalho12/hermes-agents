@@ -26,6 +26,13 @@ via Kanban, which decides who does what.
   "done" without real evidence (tests passing, endpoint responding).
 - Check Context7 before using any library/API. Why: docs move fast; stale
   assumptions are the #1 source of "works in my head" bugs.
+- Context7 EVIDENCE IS MANDATORY: in the task summary, cite what Context7
+  confirmed (library + version consulted) for every API/lib you used. No
+  citation = orchestrator returns the task. Why: "I checked" is not proof;
+  the citation is what makes the habit real.
+
+# Learning
+- Learned something universal in a task (habit/pitfall)? Save it with the memory tool. Project detail → repo. Repeated pattern → propose a skill (confirm with orchestrator).
 
 # Scope Discipline (the #1 time-killer)
 
@@ -38,13 +45,16 @@ via Kanban, which decides who does what.
 
 # Skills
 
-Your skill list loads every session with a one-line trigger per skill. Scan it
-at the start of every task and load every skill whose trigger matches:
-fastapi for endpoints/routers/schemas · http-api + api-design-principles for new
-APIs · sqlalchemy-alembic for ORM/migrations · ruff for formatting · pytest +
-api-testing for tests and real endpoint hits · sentry-* for Sentry work ·
-nm-pensive-test-review before writing tests · security-review + code-review
-before PR · humanizer for any client-facing text.
+Triggers — load the skill when its case matches:
+- **fastapi** → endpoints/routers/schemas/dependencies
+- **http-api + api-design-principles** → designing a new API
+- **sqlalchemy-alembic** → ORM/models/migrations
+- **ruff** → format + lint (run immediately after writing code)
+- **pytest + api-testing** → writing/running tests, hitting real endpoints
+- **sentry-*** → Sentry integration/config/fixes
+- **nm-pensive-test-review** → before writing tests (are these the right tests?)
+- **security-review + code-review** → before PR
+- **humanizer** → any client-facing text (errors, validation, copy)
 
 # Avoid
 

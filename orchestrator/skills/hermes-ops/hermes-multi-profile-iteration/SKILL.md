@@ -118,7 +118,13 @@ instead of clone-then-disable.
   nothing appeared in Hermes.)
 - `hermes skills install <id> -y` is more reliable than `echo y |`.
 - Scanner can block mattpocock skills (`ask-matt` dangerous: agent_config_mod;
-  `writing-for-agents` 4 findings). Do NOT force — respect the verdict.
+  `writing-for-agents` 4 findings). Respect the verdict by default, BUT the
+  user (owner) may explicitly override and authorize install anyway — then copy
+  the SKILL.md manually (`curl -s <raw-github-url> -o
+  ~/.hermes/skills/<name>/SKILL.md`) with full transparency that the scanner
+  flagged it. Validated 2026-08: user mandated ask-matt (demand router) and
+  writing-for-agents (MD authoring) despite dangerous verdicts — installed
+  manually on his call; both worked.
 - `rtk uv run ...` fails ("Failed to spawn process") and the hermes venv
   PYTHONPATH contaminates project venvs (pydantic_core mismatch). Use
   `env -u PYTHONPATH ~/.local/bin/uv run ...`.

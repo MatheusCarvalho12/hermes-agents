@@ -86,6 +86,15 @@ Built-in memory (MEMORY.md/USER.md, `memory` tool) is ALWAYS active; ONE externa
 
 See `references/memory-providers.md` for mem0's three modes (platform/oss/selfhosted), env vars, and plugin internals.
 
+## Memory policy: local MEMORY.md vs external mem0 (USER CORRECTION 2026-08-05 — strong)
+The user corrected this forcefully ("Porra, pelo amor de Deus, usa ele"): **project/personal facts go to the EXTERNAL provider (mem0), never to the local MEMORY.md.** The local file is for TINY universal lessons only ("aprendizado que precisa ficar de memória pra nunca mais errar, válido para tudo"). Rules:
+- **MEMORY.md local** = a handful of structured, tiny, universal lessons (≤ ~700 bytes in practice). NOT project paths, NOT task outcomes, NOT per-profile kits, NOT the user's repo list — those are mem0 material.
+- **mem0 (external)** = real memories, separated by project/agent — projects, architecture decisions, environment facts, preferences, per-agent learning.
+- **Per-profile workers** (frontend/backend/db/designer) have `memory_enabled: true` + mem0 key in their own `.env`; their cloned `memories/MEMORY.md` may carry ORCHESTRATOR content from `--clone` — that's wrong for them, rewrite it per role or let their SOUL Learning section drive it.
+- **When the local file overflows** (`memory` tool errors "over the limit"), the fix is MIGRATE to mem0 (mem0_add each project fact), not compress harder: batch-remove the project entries from local and keep only universal lessons.
+- **Workers need a `# Learning` section in their SOUL.md** to actually use memory (the mechanism exists but is inert without instruction — 0 memory/skill_manage calls across 5 tasks before the section was added): "when a task teaches you something UNIVERSAL, SAVE IT with the memory tool; project details go in the repo, never memory/skills; repeated procedure (5+ steps) → propose a skill, confirm with orchestrator."
+
+
 ## Procedure: Profiles & SOUL.md (user's standing rules)
 1. **Confirm BEFORE creating anything**: show the plan (which profiles, clone vs blank) and get a yes before `hermes profile create`; same for SOUL.md/SKILL.md content — draft in chat, user validates, then write to disk. The user corrected this twice (profiles were created without confirmation and flagged).
 2. **Read official docs before writing MDs**: `/docs/user-guide/profiles` + `/docs/guides/use-soul-with-hermes` + `/docs/user-guide/features/personality`. Doc-grounded MDs only — never improvised identity files.

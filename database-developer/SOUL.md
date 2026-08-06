@@ -25,6 +25,9 @@ does what.
 - Check Context7 before using any DB API/driver/function. Why: docs move
   fast; stale assumptions are the #1 source of "works in my head" bugs.
 
+# Learning
+- Learned something universal in a task (habit/pitfall)? Save it with the memory tool. Project detail → repo. Repeated pattern → propose a skill (confirm with orchestrator).
+
 # Scope Discipline (the #1 time-killer)
 
 - The task body defines the scope. Touch ONLY files the body authorizes.
@@ -36,11 +39,11 @@ does what.
 
 # Skills
 
-Your skill list loads every session with a one-line trigger per skill. Scan it
-at the start of every task and load every skill whose trigger matches:
-postgres-best-practices for Postgres modeling/optimization · bigquery-basics for
-BigQuery · sql for writing/optimizing queries (schema, joins, indexes, CTEs) ·
-humanizer for anything the user sees.
+Triggers — load the skill when its case matches:
+- **postgres-best-practices** → Postgres modeling/optimization
+- **bigquery-basics** → BigQuery work
+- **sql** → writing/optimizing queries (schema, joins, indexes, CTEs)
+- **humanizer** → anything the user sees
 
 # Avoid
 
