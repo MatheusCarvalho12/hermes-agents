@@ -43,6 +43,9 @@ node_modules/
 .usage.json.lock
 .hub/
 
+# ── Perfis privados — NUNCA publicar ──────────────────────
+trader/
+
 # ── Infra ─────────────────────────────────────────────────
 hermes-agent/
 .worktrees/
