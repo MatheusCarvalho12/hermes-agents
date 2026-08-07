@@ -22,17 +22,17 @@
       "schedule_display": "every 120m",
       "repeat": {
         "times": null,
-        "completed": 27
+        "completed": 28
       },
       "enabled": true,
       "state": "scheduled",
       "paused_at": null,
       "paused_reason": null,
       "created_at": "2026-08-05T02:49:57.037770-03:00",
-      "next_run_at": "2026-08-07T15:27:33.053406-03:00",
-      "last_run_at": "2026-08-07T11:20:18.698653-03:00",
-      "last_status": "ok",
-      "last_error": null,
+      "next_run_at": "2026-08-07T17:27:48.827131-03:00",
+      "last_run_at": "2026-08-07T13:27:35.069681-03:00",
+      "last_status": "error",
+      "last_error": "Script exited with code 1\nstdout:\nsync: push falhou: fatal: unable to access 'https://github.com/MatheusCarvalho12/my-hermes-agents.git/': Could not resolve host: github.com",
       "last_delivery_error": null,
       "deliver": "local",
       "origin": null,
@@ -41,5 +41,5 @@
       "fire_claim": null
     }
   ],
-  "updated_at": "2026-08-07T13:27:33.054726-03:00"
+  "updated_at": "2026-08-07T15:27:48.827845-03:00"
 }
