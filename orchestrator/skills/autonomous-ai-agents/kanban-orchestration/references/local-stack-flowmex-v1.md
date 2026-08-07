@@ -48,3 +48,8 @@ Empresa de teste via API: `POST /api/v1/companies` exige header `Idempotency-Key
 ## 5. UI (browser)
 
 Login dev automático → Empresas → detalhe → seção Integrações (3 cards: Mainô/PlugBoleto/Open Finance) com status reais; botão "Conectar" do Mainô abre modal de 3 campos. Screenshot = evidência visual (o drawer tem scroll próprio: scrollar `div.min-h-0.flex-1.overflow-y-auto` via JS, não browser_scroll).
+
+## 6. Ver a tela de LOGIN localmente (wallpaper/login fixes)
+
+- `vite preview` NÃO serve para ver o login: roda em modo produção e o `resolvePublicConfig` REJEITA `VITE_FLOWMEX_API_BASE_URL` http:// (exige HTTPS em prod) → tela "Configuração pública incompleta" mesmo com a var embedada no bundle. Sintoma enganoso: o bundle contém a URL (grep acha) mas a tela de erro persiste.
+- Caminho certo: `vite --mode visual` (em DEV, `main.tsx` só usa a sessão local automática quando `MODE !== "visual"`; com `--mode visual` o login aparece) + **limpar localStorage/sessionStorage antes** (sessão de dev anterior redireciona para /processes e o /login nunca renderiza). Confirmar no log do vite que o mode aplicou (`VITE v8.2.0 visual ready`).
