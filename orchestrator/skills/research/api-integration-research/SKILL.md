@@ -78,6 +78,15 @@ contas reais e entregar um relatório com fonte citada no repo do projeto.
      criar branch/relatório no repo ou tocar em código. A fase de relatório
      commitado vem depois do ok dele.
 
+## Webhooks de provedor (padrão push, validado 2026-08-06 — PlugBoleto)
+
+Quando a integração recebe push do provedor (webhook) em vez de só polling:
+- Endpoint sem auth de sessão; validação por **header custom definido no cadastro** (ex.: `auth`), comparar com `hmac.compare_digest`; sem secret configurado → 503 fail-closed.
+- **Dedupe determinístico**: `HMAC(dedupe_secret, f"{evento}|{id}")` como chave de idempotência reusando a constraint única existente (ex.: outbox) — reentrega do provedor não duplica comando.
+- **Nunca processar inline**: validar → enfileirar comando/reconcile que JÁ existe na aplicação → 200 imediato (processamento assíncrono reusa retry/persistência existentes).
+- **Evento desconhecido ou id órfão → 200 sem retry** (provedor faz 3 retries ~15s; 4xx/5xx vira loop de reentrega).
+- Tolerar envelope documentado (`{"body": {...}}`) E payload direto — o formato real varia entre entrega inicial e retries.
+
 ## Entregável do relatório
 
 - Contexto do serviço + fluxo de acesso (URLs, login, ambientes)
@@ -94,10 +103,35 @@ contas reais e entregar um relatório com fonte citada no repo do projeto.
 - Auth com pré-requisito emitido pelo provedor → não tentar "descoberta" de
   token sem ele; registrar como pendência e seguir com o mapa de endpoints.
 - Contas de produção usadas em teste → read-only; nunca POST/DELETE/PUT.
+- **TODAS as credenciais armazenadas falhando de uma vez = suspeitar da CHAVE de
+  criptografia, não das credenciais** (validado 2026-08-07, Mainô/Flowmex):
+  credenciais persistidas cifradas (AESGCM) podem ter sido gravadas com uma
+  chave que se perdeu/rotacionou → `InvalidTag` em 100% das linhas, sync falha
+  com erros genéricos (`credential_missing`/`projection_error`). Diagnóstico:
+  descriptografar 1 blob com a chave atual (sem imprimir valores) ANTES de
+  re-digitar nada. Correção: re-cadastrar via endpoint oficial da aplicação —
+  o service autentica cada credencial no provedor e mapeia por CNPJ (resposta
+  com `configured/unmatched/rejected` = validação real, zero adivinhação); se
+  o ambiente roda em container, alinhar a secret do runtime à chave do vault
+  e REDEPLOYAR (secret nova só vale após redeploy).
 - Browser remoto sem proxy residencial → timeouts/reCAPTCHA em SaaS brasileiro
   (Mainô, Receita, etc.) não significam site fora do ar; trocar de browser.
 - Commit acidental do trabalho de outro agente → worktree separado + `git add`
   seletivo.
+- **Mapeamento de credencial por CNPJ é automático e reflete o acesso REAL da
+  conta no provedor** (validado 2026-08-07, Mainô): o cadastro oficial
+  autentica cada conta e vincula SÓ os CNPJs que o payload de autenticação
+  devolve. Filial/matriz com CNPJs diferentes NÃO é bug de cadastro se a conta
+  não acessa a filial — para ter certeza, autentique com as credenciais reais
+  e liste as CHAVES do JSON (mascarando tokens): CNPJ ausente = conta não
+  acessa (falta credencial própria da filial, não re-cadastro). Sinal de que
+  FALTAM chaves no vault: `active_company_count > configured_company_count` no
+  endpoint de status de credenciais.
+- **Validação pós-correção de credenciais**: disparar 1 sync real por empresa
+  e conferir dados novos no banco (ex.: count de notas subiu) — "cadastrado
+  com sucesso" NÃO prova que o sync funciona; jobs que falhavam em segundos
+  com `credential_missing`/`projection_error` devem completar com contadores
+  de leitura/atualização > 0.
 
 ## Verificação
 

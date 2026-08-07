@@ -1,5 +1,5 @@
 name: orchestrator
-version: 1.0.27
+version: 1.0.28
 description: 'Orquestrador principal (default): gerencia o time multi-perfil via kanban,
   decide quem faz o quê, delega tarefas e administra o Hermes.'
 author: Matheus Carvalho

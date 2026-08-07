@@ -43,6 +43,11 @@ API keys, credenciais de fornecedores, tokens). O Hermes tem integração NATIVA
 7. **Nunca usar `UID` como nome de variável em script bash** — é readonly
    (uid do usuário); `UID=...` falha silencioso e a ref sai com valor errado
    (ex.: application_uid="501" → 401 na API). Usar `MAINO_UID`/`APP_UID`.
+8. **`op read` de FILE anexo com acento/espaço no NOME falha silencioso** (retorna
+   vazio, ex.: `CHAVES API MAINÔ (1).txt`): usar o **file id** —
+   `op://Vault/<item-id>/<files[].id>` (pegar o id com `op item get <id> --vault Hermes
+   --format json` → campo `files[].id`). Sintoma clássico: "arquivo veio 0 bytes"
+   quando na verdade tem conteúdo.
 
 ## Verificação segura de refs (mascarada)
 
