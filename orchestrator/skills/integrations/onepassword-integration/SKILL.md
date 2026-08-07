@@ -55,6 +55,29 @@ API keys, credenciais de fornecedores, tokens). O Hermes tem integração NATIVA
    connection string Neon é type=URL — mas contém senha: só ler dentro de
    scripts). Verificar OUTROS vaults também (`op vault list`) — o esperado
    pode estar fora do vault principal.
+10. **`op item get` exige o UUID COMPLETO** (2026-08-07): prefixo de 12 chars
+    (ex.: `kqmvz42feaox`) falha com `"kqmvz42feaox" isn't an item in the
+    "Hermes" vault` mesmo sendo o começo do id real (26 chars). O `item list`
+    retorna ids completos — NÃO truncar ao capturar. Sintoma idêntico ao de
+    item inexistente: sempre conferir o id inteiro antes de culpar permissão.
+11. **Itens categoria DOCUMENT não respondem `op item get --format json`**
+    (2026-08-07): saída vazia → JSONDecodeError no parse (parece erro de
+    permissão). Usar `op document get <id-completo> --vault Hermes` (com o id
+    COMPLETO; com prefixo truncado retorna 0 bytes silencioso). Secure notes
+    (SECURE_NOTE) com env vars: os valores são FIELDS com label em UPPER
+    (ex.: `MAINO_BASE_URL`) — ler via `op item get --format json` e mapear
+    labels→values; o notesPlain é só texto descritivo.
+12. **Label de campo com ESPAÇO falha silencioso no `op read`**
+    (2026-08-07): `op://Vault/<id>/Application` retorna VAZIO quando o campo
+    real é "Application UID" (com espaço) — o valor vazio vira `application_uid=""`
+    → 422/401 na API e parece problema de credencial. Pegar o **field id**
+    (`op item get <id> --vault Hermes --format json` → campo `fields[].id`)
+    e usar `op://Vault/<item-id>/<field-id>`.
+13. **Secrets que os workers do Hermes aplicam** vêm da seção `secrets:` do
+    `~/.hermes/config.yaml` (refs `op://Hermes/...`) — é o "1Password: applied
+    N secrets" do kanban. Para reproduzir localmente, ler os itens apontados
+    pelas refs (nomes de campos dos itens podem diferir dos labels — conferir
+    com `op item get --format json`).
 
 ## Verificação segura de refs (mascarada)
 
