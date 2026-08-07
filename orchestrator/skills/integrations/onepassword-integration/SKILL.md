@@ -48,6 +48,13 @@ API keys, credenciais de fornecedores, tokens). O Hermes tem integração NATIVA
    `op://Vault/<item-id>/<files[].id>` (pegar o id com `op item get <id> --vault Hermes
    --format json` → campo `files[].id`). Sintoma clássico: "arquivo veio 0 bytes"
    quando na verdade tem conteúdo.
+9. **Caçar credenciais espalhadas pelo vault**: para "achar a chave de X",
+   iterar `op item list` e em cada item ler labels/types/notes MASCARADOS
+   (nunca valores), filtrando por substring (ex.: "maino", "neon", "key").
+   Campos type=STRING/URL podem ser lidos direto quando não-secretos (ex.:
+   connection string Neon é type=URL — mas contém senha: só ler dentro de
+   scripts). Verificar OUTROS vaults também (`op vault list`) — o esperado
+   pode estar fora do vault principal.
 
 ## Verificação segura de refs (mascarada)
 

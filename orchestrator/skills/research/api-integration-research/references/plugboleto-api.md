@@ -78,10 +78,52 @@ Headers: `Content-Type: application/json`, `cnpj-sh`, `token-sh`, `cnpj-cedente`
 - Baixa: `POST {base}/boletos/baixa/lote` `{"Boletos":[ref]}` (+
   `motivoCancelamento:"02"` p/ banco 077); descarte de pré-registro:
   `POST {base}/boletos/lote/descarte`.
+  ⚠️ **Validado 2026-08-07 na API real: o corpo objeto `{"Boletos":[...]}` é
+  REJEITADO com 400 "O corpo da requisição deve ser um array de IDs de
+  integração"** — o adapter do Flowmex usa o formato objeto; testar array
+  `["id"]` (na tentativa com array o boleto já estava FALHA → 404 "Nenhum
+  boleto encontrado", não conclusivo). Confirmar formato exato antes de
+  confiar no fluxo de baixa.
 - PDF: `GET {base}/boletos/impressao/{idImpressao}`; se sem hash, fluxo
   assíncrono `POST {base}/boletos/impressao/lote` `{"TipoImpressao":"0",
   "Boletos":[ref]}` → protocolo → `GET {base}/boletos/impressao/lote/{protocolo}`
   até `content-type: application/pdf` (poll ~8×1.5s).
+
+## Validação real de emissão (2026-08-07, API produção — descobertas que a doc NÃO mostra)
+
+- **token-sh sem prefixo `token-`**: header espera o valor limpo (`e50e24...`).
+  Com prefixo → 401 `"Software House não encontrada"` (erro enganoso).
+- **`GET {base}/cedentes` retorna contas + convênios por cedente**
+  (`contas[].convenios[].numero_convenio`, `cod_beneficiario`, `agencia`,
+  `conta`+`conta_dv`) — a FONTE para preencher `plugboleto_convenio_id` no
+  banco da aplicação (não existe campo de convênio no 1Password; o item
+  "PlugBoleto e OpenFinance — Flowspeed" tem só docs/tokens).
+- **Conta/DV separados**: a API exige `CedenteContaNumero='13006945'` +
+  `CedenteContaNumeroDV='8'`; número concatenado `130069458` com DV vazio →
+  403 "Número do Banco, Conta e/ou Digito Verificador inválidos". O Open
+  Finance costuma entregar número+DV concatenados — normalizar ao cadastrar.
+- **`TituloNossoNumero` é OBRIGATÓRIO** para convênio RCR/registro automático
+  (ex.: IGCD convênio 666552) — sem ele → 400 "Campo obrigatório". Formato
+  numérico (timestamp 10 dígitos funcionou; boleto manual de teste usava "30").
+  ⚠️ **O adapter do Flowmex (`_emit_payload`) NÃO envia o campo** (comentário
+  do código dizia "não fabricar NossoNumero até smoke-test" — o smoke-test
+  provou que o convênio EXIGE) → PENDENTE: incluir no payload (sequencial por
+  convênio ou timestamp).
+- Pagador mínimo aceito: nome + documento (11/14) + endereço completo
+  (CEP 8, rua, número, bairro, cidade, UF). Email/telefone/complemento
+  opcionais (fallback email `noreply@invalid.local`, número `S/N`).
+- Emissão OK real: `POST /boletos/lote` com pagador mínimo + NossoNumero →
+  `_sucesso[].idintegracao` (ex.: `Z6CPHNSA1`), `situacao: SALVO`, HTTP 200.
+  Boleto do Luiz (sem NossoNumero correto) ficou `situacao: FALHA`.
+- Estado Flowmex V1 (Neon, 2026-08-07): IGCD conta 033/3122/13006945-8 →
+  `plugboleto_convenio_id='666552'`, `plugboleto_conta_id='42547'` gravados
+  (conta `openfinance-emp-46972197000121-almT5XSs8z`; conta_numero corrigida
+  `130069458→13006945`, conta_dv `''→'8'`). LOGGY/PIM/IJL: convênio banco 208.
+  AZX/ELEVEN/TNW/DPG/RLS/LTF/RCN/MONSTER: conta SEM convênio (não emitem).
+  IGCD conta 341 não existe na API.
+- Webhook cadastrado (produção) para IGCD: url
+  `https://flowmex-gateway.matheuscarvalho.workers.dev/api/webhooks/plugboleto`,
+  header `auth` = FLOWMEX_BILLING_PLUGBOLETO_WEBHOOK_SECRET, eventos todos ativos.
 
 ## Fluxo Flowmex (contexto da integração)
 

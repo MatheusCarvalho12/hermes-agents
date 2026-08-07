@@ -57,6 +57,16 @@ contas reais e entregar um relatório com fonte citada no repo do projeto.
    o dump reportar `count=0` num módulo que o script direto mostra com dados
    (24KB+), é parse errado, não "sem dados". Fluxo de verificação completo em
    `kanban-orchestration` (seção worktrip de integração externa).
+   - **UI mostrando valor/contagem zerados em lista derivada (ex.: cobranças
+     com `R$ 0,00` e `0 boletos`) = checar o BANCO antes de culpar o cálculo**
+     (validado 2026-08-07, Flowmex): SELECT por status × vínculo (ex.: count
+     de boletos por cobrança) — 0 pode ser DADO legítimo (cobranças sem
+     boleto: dados de teste/legado importados). Se o banco de produção nem
+     tem os registros que a tela mostra, a UI está apontando para OUTRO
+     ambiente (dev/local do dev) — não é bug de cálculo nem de código; o
+     contador de linhas do banco vs o "N nesta página" da tela denuncia isso
+     na hora. Só abrir task de correção depois de provar que o dado existe e
+     o cálculo o ignora.
    - **Limites de janela de período só aparecem na chamada real** (Mainô,
      2026-08-06): `GET /nfes_emitidas` recusa período >90 dias com HTTP 200 +
      corpo `{"error":"Somente é possível fazer buscas de no máximo um período
@@ -132,6 +142,22 @@ Quando a integração recebe push do provedor (webhook) em vez de só polling:
   com sucesso" NÃO prova que o sync funciona; jobs que falhavam em segundos
   com `credential_missing`/`projection_error` devem completar com contadores
   de leitura/atualização > 0.
+- **APIs de emissão validam em CAMADAS — o 200 do POST não prova o registro**
+  (validado 2026-08-07, PlugBoleto/Santander): camada 1 = gateway da API
+  (400 `_falha[]` com campo a campo: "Campo obrigatório", tamanho máximo);
+  camada 2 = webservice do banco processado DEPOIS (situacao `SALVO` → minutos
+  depois `REGISTRADO` | `REJEITADO` com motivo codificado ex.: `1090:O campo
+  'documentKind' é obrigatório` | `FALHA` com motivo textual). Técnica para
+  descobrir a sequência de campos obrigatórios de um provedor de cobrança:
+  emitir payload MÍNIMO real e ler os motivos de erro em sequência (cada erro
+  revela o próximo campo), SEM adivinhar pela doc. Padrões que quebram com
+  frequência: número de conta com DV concatenado (API quer separado),
+  NumeroDocumento com UUID inteiro (limite 15 chars), tipo de documento
+  obrigatório (documentKind = `TituloDocEspecie`, não `TituloDocumento`),
+  nosso-número numérico obrigatório mesmo com registro automático. PDF só
+  existe com situação REGISTRADO (FALHA/REJEITADO → 400). Validação sem
+  poluir produção: 1 título real + baixa em seguida (corpo da baixa = array de
+  IDs). Receita completa e endpoints: skill `plugboleto-tecnospeed`.
 
 ## Verificação
 
@@ -148,3 +174,7 @@ Quando a integração recebe push do provedor (webhook) em vez de só polling:
   endpoints de emissão/consulta/baixa/PDF) + contexto do fluxo Flowmex V1 +
   design do contrato de webhook (endpoint, dedupe via billing_idempotency,
   repasse de env no gateway).
+- Skill dedicada `plugboleto-tecnospeed` (integrations/) — receita de emissão
+  validada empiricamente (payload mínimo que REGISTRA), pitfalls e
+  `references/emissao-receita.md` com a cronologia dos erros em sequência.
+  Consultar ANTES de implementar/ajustar emissão de boleto.
