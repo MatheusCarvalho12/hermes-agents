@@ -1,6 +1,6 @@
 model:
-  default: deepseek/deepseek-v4-flash-0731
-  provider: nous
+  default: deepseek-v4-flash
+  provider: deepseek
   base_url: ''
 database:
   journal_mode: wal
@@ -144,6 +144,8 @@ skills:
     - notion
     - obsidian
     - openhue
+    - receita-portals
+    - rfb-portal-integration
     - serving-llms-vllm
     - songwriting-and-ai-music
     - teams-meeting-pipeline

@@ -84,6 +84,8 @@ Quick-starts and caveats: `references/mcp-and-rtk-setup.md`.
 ## Memory Providers
 Built-in memory (MEMORY.md/USER.md, `memory` tool) is ALWAYS active; ONE external provider at a time: honcho, openviking, mem0, hindsight, holographic, retaindb, byterover. External providers surface their own tools (`mem0_*` etc.), visible only in a new session.
 
+**Per-profile isolation (validated 2026-08, plugin source):** without `MEM0_USER_ID`, every profile shares the SAME mem0 store — the plugin falls back to the gateway-native id (`hermes-user`). Set `MEM0_USER_ID=<unique>` in a profile's `.env` to get a truly separate store (storage-level isolation, better than relying on cross-profile search discipline). Verified in `plugins/memory/mem0/__init__.py` (`env_user_id` → `config["user_id"]`).
+
 See `references/memory-providers.md` for mem0's three modes (platform/oss/selfhosted), env vars, and plugin internals.
 
 ## Memory policy: local MEMORY.md vs external mem0 (USER CORRECTION 2026-08-05 — strong)

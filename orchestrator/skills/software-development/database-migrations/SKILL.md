@@ -123,6 +123,23 @@ docker exec $CID sh -c "pg_dump -U flowmex -d <banco_irmao> -n public --schema-o
 
 **Verificação**: `SELECT tablename FROM pg_tables WHERE schemaname='public'` deve listar as 4 tabelas; o worker sobe com seu log de início.
 
+## Pitfall 7 — teardown quebra com `constraint "X" does not exist` no drop_all (FK morta por CASCADE de outra fixture)
+
+**Sintoma**: pytest falha no TEARDOWN com `ProgrammingError: constraint "fk_..." of relation "..." does not exist` + SQL `ALTER TABLE ... DROP CONSTRAINT ...`; os testes em si passam (ex.: 5 passed, 5 errors). O `metadata.drop_all` do SQLAlchemy NÃO é tolerante: emite DROP CONSTRAINT para TODA FK do metadata e quebra se ela não existe no banco.
+
+**Causa**: fixture de OUTRA suíte dropa tabela com `DROP TABLE IF EXISTS ... CASCADE` (ex.: `processos.process_records`) — o CASCADE mata as FKs que apontam para ela (ex.: `process_ce_details` de outra branch). O `metadata.create_all` NÃO recria FK em tabela que já existe → banco fica com tabela órfã de FK. Fica mascarado quando a suíte culpada roda antes na ordem alfabética (ninguém mais reclama depois).
+
+**Fix robusto** (banco dev compartilhado entre suítes/branches): DROP dos SCHEMAS inteiros no setup E no teardown de TODAS as fixtures que tocam schemas compartilhados:
+```python
+await conn.execute(text("DROP SCHEMA IF EXISTS <schema_a> CASCADE"))
+await conn.execute(text("DROP SCHEMA IF EXISTS <schema_b> CASCADE"))
+await conn.execute(text("CREATE SCHEMA IF NOT EXISTS <schema_a>"))
+await conn.execute(text("CREATE SCHEMA IF NOT EXISTS <schema_b>"))
+await conn.run_sync(BaseA.metadata.create_all)
+await conn.run_sync(BaseB.metadata.create_all)
+```
+Validado 2026-08-06 (merge flowmex: conftest de documentos + test_postgres_process_store usavam DROP TABLE CASCADE + drop_all; troca por DROP SCHEMA CASCADE resolveu).
+
 ## Regras gerais
 - **NUNCA dropar schema/tabela antes de conferir contagens** — banco local de dev vazio é resetável; banco com dados não.
 - `alembic stamp` para "mentir" o estado só quando o schema atual bate com a revisão alvo — caso contrário, drop + upgrade limpo.

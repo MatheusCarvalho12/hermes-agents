@@ -17,6 +17,9 @@ contas reais e entregar um relatório com fonte citada no repo do projeto.
 2. **Ache a documentação oficial** (nesta ordem):
    - Busca: `site:<dominio> api`, `<nome> api documentação`, `<nome> api reference`
    - Docs subdomínio (docs., ajuda./help., changelog./reference.)
+   - Zendesk help centers (`atendimento.<empresa>.com.br/hc/...`) — artigos de
+     webhook/integração ficam lá e extraem inteiros via web_extract (ex.:
+     TecnoSpeed/PlugBoleto).
    - Se a doc é GitBook/Mintlify: existe **`llms.txt`** no root e toda página
      tem versão Markdown **appendando `.md`** na URL — extrai páginas inteiras
      de uma vez (web_extract), incluindo schemas OpenAPI embutidos.
@@ -54,11 +57,26 @@ contas reais e entregar um relatório com fonte citada no repo do projeto.
    o dump reportar `count=0` num módulo que o script direto mostra com dados
    (24KB+), é parse errado, não "sem dados". Fluxo de verificação completo em
    `kanban-orchestration` (seção worktrip de integração externa).
+   - **Limites de janela de período só aparecem na chamada real** (Mainô,
+     2026-08-06): `GET /nfes_emitidas` recusa período >90 dias com HTTP 200 +
+     corpo `{"error":"Somente é possível fazer buscas de no máximo um período
+     de 90 dias"}` (JSON, não ZIP) → dump reporta count=0 MUDO. Todo endpoint
+     de exportação por data: testar com janela grande ANTES de implementar o
+     fetcher; resposta de erro JSON no corpo = erro tipado, nunca silencioso.
+   - **application_uid (ou chave de app) é vinculado à conta que o gerou**
+     (Mainô, 2026-08-06): UID do IGCD + credenciais de outra conta → 401;
+     UID + credenciais da conta dona → 200 multi-empresa. Ao receber contas de
+     teste, pedir também o UID/chave da APLICAÇÃO vinculada a elas.
 7. **Entregue**: relatório Markdown com fonte citada em `docs/` do repo, numa
    branch própria. Se outro agente está trabalhando no mesmo repo, use
    **`git worktree add <caminho> -b <branch> origin/main`** (diretório
    separado) — nunca branch na working copy compartilhada; commite só os
    arquivos seus, deixe alterações dos outros intocadas.
+   - **Pedido de "só pesquisar" (usuário: "não desenvolve de cara")**: entregue
+     os achados NA CONVERSA (estado atual do código, doc oficial, credenciais
+     disponíveis no vault, lacunas) e AGUARDE a decisão do usuário antes de
+     criar branch/relatório no repo ou tocar em código. A fase de relatório
+     commitado vem depois do ok dele.
 
 ## Entregável do relatório
 
@@ -91,3 +109,8 @@ contas reais e entregar um relatório com fonte citada no repo do projeto.
 
 - `references/maino-api.md` — conhecimento condensado da API Mainô (base URL,
   auth, mapa de endpoints, lacunas, contas de teste) para a integração Flowmax.
+- `references/plugboleto-api.md` — conhecimento condensado da API
+  PlugBoleto/TecnoSpeed (webhooks: cadastro, payloads, retry, produção-only;
+  endpoints de emissão/consulta/baixa/PDF) + contexto do fluxo Flowmex V1 +
+  design do contrato de webhook (endpoint, dedupe via billing_idempotency,
+  repasse de env no gateway).

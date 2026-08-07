@@ -50,6 +50,19 @@ hermes skills opt-in --sync      # undo: remove marker and re-seed now
 ```
 Pitfalls: `--no-skills` is the correct way to get a lean profile; clone-then-disable leaves ~90 skill files on disk that still show up in inventories. `opt-out --remove` is safe (only byte-identical bundled skills are deleted) and beats hand-editing `skills.disabled` for cleanup. All three paths write a `.no-bundled-skills` marker.
 
+**Standalone profile (never called by the orchestrator) — validated 2026-08 (trader):**
+A profile that exists only for direct chat (user switches profiles in the app) needs ZERO orchestrator config — routing only happens via `kanban_create --assignee`, so a profile with no tasks is never called. No kanban init, no MCPs, no gateway. Recipe:
+1. `hermes profile create <name> --no-skills --description "<role>"` → empty profile: NO config.yaml, NO API keys, starter SOUL.md, `.no-bundled-skills` marker auto-written (skips the opt-out step entirely).
+2. Copy keys from default `.env`: `grep -E "^(DEEPSEEK_API_KEY|MEM0_API_KEY)=" ~/.hermes/.env >> ~/.hermes/profiles/<name>/.env` (never print values). If a start-anchored grep misses a known line, extract by line number: `sed -n '<N>p' ~/.hermes/.env >> target`.
+3. Create config.yaml via `hermes -p <name> config set model.default <model>` + `model.provider` + `memory.provider mem0` + `memory.memory_enabled true` + `memory.user_profile_enabled true`.
+4. Copy the curated kit from default home preserving category dirs: `mkdir -p <T>/<cat>; cp -R ~/.hermes/skills/<cat>/<skill> <T>/<cat>/`.
+5. Write SOUL.md (English, official structure) with the role rules; verify `grep -cE '[áàâãéêíóôõúç]' SOUL.md` → 0.
+6. Verify: `hermes profile list` (model column) + `COLUMNS=400 hermes -p <name> skills list` → exactly the kit, all enabled.
+
+**MEM0 isolation per profile (plugin-verified 2026-08):** without `MEM0_USER_ID`, ALL profiles share the SAME mem0 store (user_id falls back to the gateway-native `hermes-user` — checked: none of the 5 team profiles set it). To make a profile's memory TRULY separate at the storage level (not just "don't search each other's memories"), set `MEM0_USER_ID=<unique>` in that profile's `.env`. Plugin source: `plugins/memory/mem0/__init__.py` — `env_user_id = os.environ.get("MEM0_USER_ID"); if env_user_id: config["user_id"] = env_user_id`. Applies to workers AND standalone profiles.
+
+Full session detail (exact commands, verification, pitfalls hit): `references/standalone-profile-recipe.md`.
+
 ### 2. Per-profile MCP servers
 ```bash
 hermes mcp add --help   # --env KEY=VALUE | --command npx | --args (must be last)

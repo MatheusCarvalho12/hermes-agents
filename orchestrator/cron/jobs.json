@@ -22,15 +22,15 @@
       "schedule_display": "every 120m",
       "repeat": {
         "times": null,
-        "completed": 18
+        "completed": 19
       },
       "enabled": true,
       "state": "scheduled",
       "paused_at": null,
       "paused_reason": null,
       "created_at": "2026-08-05T02:49:57.037770-03:00",
-      "next_run_at": "2026-08-06T21:13:37.699041-03:00",
-      "last_run_at": "2026-08-06T17:13:23.237912-03:00",
+      "next_run_at": "2026-08-06T23:14:46.005158-03:00",
+      "last_run_at": "2026-08-06T19:14:08.011942-03:00",
       "last_status": "ok",
       "last_error": null,
       "last_delivery_error": null,
@@ -38,49 +38,8 @@
       "origin": null,
       "enabled_toolsets": null,
       "workdir": null,
-      "fire_claim": null
-    },
-    {
-      "id": "118e54f07ed5",
-      "name": "Retry valida\u00e7\u00e3o Siscarga (ponta a ponta)",
-      "prompt": "Voc\u00ea executou o retry da valida\u00e7\u00e3o do Siscarga (Chrome limpo + fluxo CDP v4 \u2014 auth mTLS via NSS, captcha via NopeCHA Recognition montado do DOM, cliques reais, token, submit).\n\nAnalise o output do script e reporte ao usu\u00e1rio em pt-BR, curto e direto:\n1. Se a URL final cont\u00e9m ExibirCargas e o body tem \"registros encontrados\" \u2192 SUCESSO TOTAL: pipeline validado ponta a ponta (mencione quantos registros e o CNPJ usado 63478683000107)\n2. Se chegou a \"TOKEN:\" mas sem resultados \u2192 quase l\u00e1: reporte o que travou\n3. Se \"sem challenge\"/\"sem token\" \u2192 rate-limit ainda ativo: reporte e diga que o retry deve ser repetido em mais 1-2h\n4. Qualquer erro t\u00e9cnico (falha mTLS, exception) \u2192 reporte o erro literal\n\nN\u00e3o altere nenhum arquivo do projeto. Apenas reporte o resultado da execu\u00e7\u00e3o.",
-      "skills": [],
-      "skill": null,
-      "model": null,
-      "provider": null,
-      "provider_snapshot": "nous",
-      "model_snapshot": "deepseek/deepseek-v4-flash-0731",
-      "base_url": null,
-      "script": "siscarga_retry.sh",
-      "no_agent": false,
-      "context_from": null,
-      "schedule": {
-        "kind": "once",
-        "run_at": "2026-08-06T18:40:00-03:00",
-        "display": "once at 2026-08-06 18:40"
-      },
-      "schedule_display": "once at 2026-08-06 18:40",
-      "repeat": {
-        "times": 1,
-        "completed": 1
-      },
-      "enabled": false,
-      "state": "completed",
-      "paused_at": null,
-      "paused_reason": null,
-      "created_at": "2026-08-06T17:35:55.801231-03:00",
-      "next_run_at": null,
-      "last_run_at": "2026-08-06T18:59:30.207430-03:00",
-      "last_status": "ok",
-      "last_error": null,
-      "last_delivery_error": null,
-      "deliver": "local",
-      "origin": null,
-      "enabled_toolsets": null,
-      "workdir": null,
-      "run_claim": null,
       "fire_claim": null
     }
   ],
-  "updated_at": "2026-08-06T19:13:37.699544-03:00"
+  "updated_at": "2026-08-06T21:14:46.006558-03:00"
 }

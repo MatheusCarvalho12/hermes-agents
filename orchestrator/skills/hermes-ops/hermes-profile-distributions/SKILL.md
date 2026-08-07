@@ -53,6 +53,14 @@ User requirement: "toda vez que atualizar alguma coisa, faz push automático, mu
 3. Cron: `cronjob action=create no_agent=true script=sync-hermes-agents.sh schedule="every 2h"` (sh wrapper execs the venv python; script path resolves under ~/.hermes/scripts/). Test once with `cronjob action=run`.
 4. **`--check` mode must NOT mutate**: don't bump versions or write README when only reporting; guard the bump with `if status and not check_only`.
 
+## Excluding a profile from the distribution (private/standalone agents — validated 2026-08, profile `trader`)
+Some profiles must NEVER reach the public backup repo (e.g. a private trading agent the user talks to directly). The auto-sync script enumerates profiles via hardcoded `PROFILES`/`AGENT_META` lists — a newly created profile does NOT auto-join (no glob over `~/.hermes/profiles/*`), but harden it anyway so a future edit can't leak it:
+1. **Guard in the sync script** (`~/.hermes/scripts/sync-hermes-agents.py`): `EXCLUDED_PROFILES = {"<name>"}` + abort at the top of `build()`:
+   `leaked = (set(PROFILES) | set(AGENT_META)) & EXCLUDED_PROFILES; if leaked: raise SystemExit("sync: PERIGO — ...")` — aborts even if someone later adds the name to either list. Note: the script lives under `~/.hermes/scripts/` and is NOT versioned in the repo — the guard is local-only.
+2. **`.gitignore` entry in the staging repo** (`~/dev/hermes-agents/.gitignore`): `<name>/` under a `# ── Perfis privados — NUNCA publicar ──` section. This file IS pushed to GitHub → protects the remote even if `git add -A` ever runs with the folder present. Commit+push the .gitignore change immediately (don't wait for the 2h cron).
+3. **Verify remote**: `gh api repos/<owner>/<repo>/contents/ --jq '.[].name'` shows no `<name>` folder; `git -C <repo> check-ignore -v <name>/` confirms the ignore rule.
+4. Full recipe + the ad-hoc verification harness (importlib monkeypatch of PROFILES/AGENT_META asserting SystemExit): `references/excluding-private-profiles.md`.
+
 ## Publish workflow (validated 2026-08, repo: MatheusCarvalho12/hermes-agents)
 Full step-by-step with code in `references/publish-and-restore.md`. Summary:
 
