@@ -16,7 +16,7 @@
 | ![database-developer](https://img.shields.io/badge/-database--developer-4169E1?logo=postgresql&logoColor=white) | Database — Postgres, SQL, modelagem, migrações e otimização. | 5 |
 | ![designer](https://img.shields.io/badge/-designer-F24E1E?logo=figma&logoColor=white) | Designer — design system, branding, tokens, Figma e direção visual. | 7 |
 
-*Última atualização: 07/08/2026 — 5 agentes, 98 skills ativas no total.*
+*Última atualização: 08/08/2026 — 5 agentes, 98 skills ativas no total.*
 
 ## 💾 Restaurar em outra máquina
 
