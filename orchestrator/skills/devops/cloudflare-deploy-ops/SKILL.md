@@ -18,6 +18,7 @@ Deploying to Cloudflare (Workers, Containers, Pages) manually with wrangler — 
 3. **`@cloudflare/containers` missing in node_modules** → deploy fails `Could not resolve "@cloudflare/containers"`. Fix: `npm ci` in the gateway dir (the lockfile has it).
 4. **Containers are only managed when the `containers` block sits inside the env being deployed.** A working deploy prints `Modified application <worker>-<class>-production`. Verify with `npx wrangler containers list` (LAST MODIFIED should be now) and `containers info <id>` (`health.instances.healthy`; healthy 0 = degraded). Container names may be legacy (e.g. `flowmex-gateway-staging-fastapicontainer-staging`) — the env deploy updates the existing container; don't panic at the name.
 5. **Worker deploy ≠ container deploy.** `wrangler deploy -e production` output shows "Deployed flowmex-gateway triggers" AND "Modified application ...-production"; if only the triggers line appears, containers were not touched.
+6. **Cold start pós-deploy: rotas do container dão 404/erro temporário por ~25-30s.** O worker (healthz) volta a responder 200 na hora, mas o container FastAPI novo ainda está subindo — rotas NOVAS respondem 404 (ou timeout curl 000/28) nessa janela. NÃO concluir "rota não existe" sem antes aguardar ~30s e re-testar (o teste final: rota nova responde 401 = existe; 404 persistente após 2 tentativas com intervalo = problema real).
 
 ## Deploy sequence (validated)
 1. `npx wrangler whoami` (auth check).

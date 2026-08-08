@@ -53,3 +53,16 @@ Login dev automático → Empresas → detalhe → seção Integrações (3 card
 
 - `vite preview` NÃO serve para ver o login: roda em modo produção e o `resolvePublicConfig` REJEITA `VITE_FLOWMEX_API_BASE_URL` http:// (exige HTTPS em prod) → tela "Configuração pública incompleta" mesmo com a var embedada no bundle. Sintoma enganoso: o bundle contém a URL (grep acha) mas a tela de erro persiste.
 - Caminho certo: `vite --mode visual` (em DEV, `main.tsx` só usa a sessão local automática quando `MODE !== "visual"`; com `--mode visual` o login aparece) + **limpar localStorage/sessionStorage antes** (sessão de dev anterior redireciona para /processes e o /login nunca renderiza). Confirmar no log do vite que o mode aplicou (`VITE v8.2.0 visual ready`).
+
+## 7. Diagnóstico de PDF de boleto indisponível (404 `pdf_unavailable`)
+
+Validado 2026-08-07 (feature PDF único #116): o endpoint de PDF (individual `GET /boletos/{id}/pdf` e o merged `POST /boletos/pdfs/merged`) responde 404 `{"error":"Official boleto PDF is unavailable","code":"pdf_unavailable"}` quando o PDF não pode ser servido. Cadeia de diagnóstico (read-only no Neon, connection string do item "Banco de dados Flowmex"):
+
+1. **Isolar**: testar o endpoint INDIVIDUAL primeiro — se ele também dá 404, NÃO é bug do merged/bundle (o merged apenas junta `get_pdf`).
+2. **Tabelas com prefixo e colunas certas** (consultas diretas com nomes errados dão "0 rows" enganoso):
+   - `flowmex_billing_boleto_details` (cols: `boleto_id`, `public_id`, `has_pdf`, `normalization_state`) — **o id exposto pela API (`bol_...`) é o `public_id`**, NÃO `boletos.id`; o `resolve_pdf_source` consulta `WHERE public_id = <id> AND normalization_state = 'ready'`.
+   - `flowmex_billing_pdf_assets` (object_key/sha256 por `boleto_id` interno) — `object_key` NULL = nunca cacheado.
+   - `flowmex_billing_pdf_audit_events` (outcome: served/unavailable/failed, cache_hit) — vazio = o fluxo não chegou a auditar.
+   - Join de diagnóstico: `d.public_id, d.has_pdf, d.normalization_state, b.plugboleto_id_integracao, p.object_key FROM flowmex_billing_boleto_details d LEFT JOIN boletos b ON b.id=d.boleto_id LEFT JOIN flowmex_billing_pdf_assets p ON p.boleto_id=b.id WHERE d.public_id IN (...)`. `has_pdf=false` + asset None = nunca baixado.
+3. **Causa externa**: sem cache, o `get_pdf` consulta a PlugBoleto (`GET {base}/boletos?idintegracao=<plugboleto_id_integracao>` com headers cnpj-sh/token-sh/cnpj-cedente) → `{"_status":"sucesso","_mensagem":"Nenhum registro encontrado"}` = a referência não existe no ambiente configurado (possível mismatch de ambiente/cedente — pendência conhecida: usuário mencionou `producao.plugboleto.com.br` + CNPJ 57.371.674/0001-10 como ambiente alternativo). Curl direto com as MESMAS creds isola API externa de código.
+4. **Verificação de merge de PDFs (pypdf)**: `PdfWriter().append(a); append(b); write(out)` → `len(PdfReader(out).pages)` == N é a prova de que o merge funciona com PDFs arbitrários. Endpoint merged mantém os headers de controle `x-boletos-solicitados/incluidos/indisponiveis` do bundle ZIP.
